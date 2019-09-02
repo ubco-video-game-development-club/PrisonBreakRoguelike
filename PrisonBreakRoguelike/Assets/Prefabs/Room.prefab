@@ -46,4 +46,5 @@ MonoBehaviour:
   width: 16
   height: 16
   tileSize: 1
-  tilePrefab: {fileID: 0}
+  tilePrefab: {fileID: 2052754569327910191, guid: 9c18b993739aee0469e00a424d51c008,
+    type: 3}
