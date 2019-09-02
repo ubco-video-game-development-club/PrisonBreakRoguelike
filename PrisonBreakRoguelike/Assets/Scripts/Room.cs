@@ -4,9 +4,14 @@ using UnityEngine;
 
 public class Room : MonoBehaviour
 {
-    public int width = 16, height = 16;
-    public float tileSize = 1f;
+    public int size = 16;
+    public float tileScale = 1f;
     public Tile tilePrefab;
+
+    [HideInInspector]
+    public int x, y;
+    [HideInInspector]
+    public bool visited = false;
 
     private Tile[,] tiles;
 
@@ -21,25 +26,22 @@ public class Room : MonoBehaviour
         return tiles[x, y];
     }
 
-    void Start()
+    public void InitializeTiles(Color tileColor)
     {
-        tiles = new Tile[width, height];
-        for (int i = 0; i < width; i++)
+        tiles = new Tile[size, size];
+        for (int i = 0; i < size; i++)
         {
-            for (int j = 0; j < height; j++)
+            for (int j = 0; j < size; j++)
             {
-                Vector2 pos = new Vector2(i + tileSize/2, j + tileSize/2);
-                Tile tile = Instantiate(tilePrefab, pos, Quaternion.identity) as Tile;
+                Vector2 pos = new Vector2((i + 0.5f) * tileScale, (j + 0.5f) * tileScale);
+                Vector2 offset = new Vector2(x * size * tileScale, y * size * tileScale);
+                Tile tile = Instantiate(tilePrefab, pos + offset, Quaternion.identity, transform) as Tile;
+                tile.name = "Tile[" + i + ", " + j + "]";
+                tile.GetComponent<SpriteRenderer>().color = tileColor;
                 tile.x = i;
                 tile.y = j;
                 tiles[i, j] = tile;
             }
         }
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
 }
