@@ -172,6 +172,13 @@ public class LevelController : MonoBehaviour
         return rooms[rand];
     }
 
+    private void CreateDoorway(Room room)
+    {
+        List<Tile> walls = room.GetWalls();
+        int rand = Random.Range(0, walls.Count);
+        walls[rand].isDoor = true;
+    }
+
     void Update()
     {
         

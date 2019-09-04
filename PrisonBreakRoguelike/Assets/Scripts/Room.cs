@@ -46,6 +46,8 @@ public class Room : MonoBehaviour
         }
     }
     //Retrieves a list of all tiles that are part of a wall, but are not a corner tile
+
+    //TODO add variable based probabilities for what wall is chosen, and what tile on that wall is chosen
     public List<Tile> GetWalls() 
     {
         List<Tile> walls = new List<Tile>(); 
