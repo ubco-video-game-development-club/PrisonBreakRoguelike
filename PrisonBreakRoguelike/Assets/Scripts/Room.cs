@@ -15,6 +15,7 @@ public class Room : MonoBehaviour
 
     private Tile[,] tiles;
 
+
     public Tile GetTile(int x, int y)
     {
         if (x < 0 || x >= tiles.GetLength(0) ||
@@ -43,5 +44,23 @@ public class Room : MonoBehaviour
                 tiles[i, j] = tile;
             }
         }
+    }
+    //Retrieves a list of all tiles that are part of a wall, but are not a corner tile
+    public List<Tile> GetWalls() 
+    {
+        List<Tile> walls = new List<Tile>(); 
+        for (int i = 0; i < size; i++)
+        {
+            for (int j = 0; j < size; j++)
+            {
+                Tile tile = tiles[i, j];
+                if (((tile.x == 0 || tile.y == size) && (tile.y != 0 || tile.y != size)) || ((tile.y == 0 || tile.y == size) && (tile.x != 0 || tile.x != size)))
+                {
+                    walls.Add(tile);
+                    tile.isWall = true;
+                }
+            }
+        }
+        return walls;
     }
 }
