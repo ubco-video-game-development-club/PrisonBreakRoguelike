@@ -6,6 +6,8 @@ public class Tile : MonoBehaviour
 {
     [HideInInspector]
     public int x, y;
+    public bool isDoor;
+    public bool isWall;
 
     /// <summary>
     /// The GameObject that is occupying this Tile.
