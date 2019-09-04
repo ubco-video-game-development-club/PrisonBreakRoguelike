@@ -5,10 +5,13 @@ using UnityEngine;
 public class LevelController : MonoBehaviour
 {
     public int width, height;
+    public int roomSize = 16;
+    public float tileScale = 1f;
     public int spawnX, spawnY;
     [Tooltip("The minimum distance from the player's start location that the exit to the next level will spawn.")]
     public int exitDistance = 1;
     public Room roomPrefab;
+    public Tile tilePrefab;
 
     private Room[,] rooms;
 
@@ -24,10 +27,10 @@ public class LevelController : MonoBehaviour
         Transform parentRoom = new GameObject("Rooms").transform;
         for (int i = 0; i < width; i++)
         {
-            for (int j = 0; j < height; j++)
+            for (int j = 0; j < height; j++) 
             {
-                float scale = roomPrefab.size * roomPrefab.tileScale;
-                Vector2 pos = new Vector2(i * scale, j * scale);
+                float scale = (roomSize + 1) * tileScale;
+                Vector2 pos = new Vector2(i * scale, j  * scale);
                 Room room = Instantiate(roomPrefab, pos, Quaternion.identity, parentRoom) as Room;
                 room.name = "Room[" + i + ", " + j + "]";
                 room.x = i;
@@ -56,15 +59,15 @@ public class LevelController : MonoBehaviour
         {
             if (room.x == spawnX && room.y == spawnY)
             {
-                room.InitializeTiles(Color.blue);
+                room.InitializeTiles(tilePrefab, roomSize, tileScale, Color.blue);
             }
             else if (room.x == exit.x && room.y == exit.y)
             {
-                room.InitializeTiles(Color.red);
+                room.InitializeTiles(tilePrefab, roomSize, tileScale, Color.red);
             }
             else
             {
-                room.InitializeTiles(Color.white);
+                room.InitializeTiles(tilePrefab, roomSize, tileScale, Color.white);
             }
         }
     }
@@ -99,6 +102,7 @@ public class LevelController : MonoBehaviour
         }
 
         Room next = GetRandomRoom(adjacentRooms);
+        GenerateWall(rooms[x, y], next);
         next.visited = true;
         path.Add(next);
 
@@ -108,6 +112,34 @@ public class LevelController : MonoBehaviour
         }
 
         return GeneratePath(path, next.x, next.y, endX, endY);
+    }
+
+    //Generates a wall between two rooms
+    private List<Tile> GenerateWall(Room room1, Room room2)
+    {
+        List<Tile> wall = new List<Tile>();
+        Vector2 angle = new Vector2(Mathf.Abs(room2.x - room1.x), Mathf.Abs(room2.y - room2.y));
+        angle.Normalize();
+
+        for(int i = 0; i < roomSize; i++)
+        {
+            float avx = (room1.transform.position.x + room2.transform.position.x) / 2 ; 
+            float avy = (room1.transform.position.y + room2.transform.position.y) / 2 ;
+
+            float sizeX = (roomSize * tileScale * angle.x) / 2;
+            float sizeY = (roomSize * tileScale * angle.y) / 2;
+
+            float offX = avx + sizeX - 1;
+            float offY = avy + sizeY - 1;
+
+            Vector2 pos = new Vector2(offX + angle.y * i, offY + angle.x * i);
+
+            Tile wallTile = Instantiate(tilePrefab, pos, Quaternion.identity);
+            wallTile.GetComponent<SpriteRenderer>().color = Color.grey;
+            wall.Add(wallTile);
+
+        }
+        return wall;
     }
 
     private void ClearVisited()
@@ -170,13 +202,6 @@ public class LevelController : MonoBehaviour
     {
         int rand = Random.Range(0, rooms.Count);
         return rooms[rand];
-    }
-
-    private void CreateDoorway(Room room)
-    {
-        List<Tile> walls = room.GetWalls();
-        int rand = Random.Range(0, walls.Count);
-        walls[rand].isDoor = true;
     }
 
     void Update()

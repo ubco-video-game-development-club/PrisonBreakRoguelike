@@ -4,10 +4,7 @@ using UnityEngine;
 
 public class Room : MonoBehaviour
 {
-    public int size = 16;
-    public float tileScale = 1f;
-    public Tile tilePrefab;
-
+  
     [HideInInspector]
     public int x, y;
     [HideInInspector]
@@ -27,16 +24,16 @@ public class Room : MonoBehaviour
         return tiles[x, y];
     }
 
-    public void InitializeTiles(Color tileColor)
+    public void InitializeTiles(Tile tilePrefab, int roomSize, float tileScale, Color tileColor)
     {
-        tiles = new Tile[size, size];
-        for (int i = 0; i < size; i++)
+        tiles = new Tile[roomSize, roomSize];
+        for (int i = 0; i < roomSize; i++)
         {
-            for (int j = 0; j < size; j++)
+            for (int j = 0; j < roomSize; j++)
             {
-                Vector2 pos = new Vector2((i + 0.5f) * tileScale, (j + 0.5f) * tileScale);
-                Vector2 offset = new Vector2(x * size * tileScale, y * size * tileScale);
-                Tile tile = Instantiate(tilePrefab, pos + offset, Quaternion.identity, transform) as Tile;
+                Vector3 pos = new Vector2((i + 0.5f) * tileScale, (j + 0.5f) * tileScale);
+                pos += transform.position;
+                Tile tile = Instantiate(tilePrefab, pos, Quaternion.identity, transform) as Tile;
                 tile.name = "Tile[" + i + ", " + j + "]";
                 tile.GetComponent<SpriteRenderer>().color = tileColor;
                 tile.x = i;
@@ -45,24 +42,5 @@ public class Room : MonoBehaviour
             }
         }
     }
-    //Retrieves a list of all tiles that are part of a wall, but are not a corner tile
-
-    //TODO add variable based probabilities for what wall is chosen, and what tile on that wall is chosen
-    public List<Tile> GetWalls() 
-    {
-        List<Tile> walls = new List<Tile>(); 
-        for (int i = 0; i < size; i++)
-        {
-            for (int j = 0; j < size; j++)
-            {
-                Tile tile = tiles[i, j];
-                if (((tile.x == 0 || tile.y == size) && (tile.y != 0 || tile.y != size)) || ((tile.y == 0 || tile.y == size) && (tile.x != 0 || tile.x != size)))
-                {
-                    walls.Add(tile);
-                    tile.isWall = true;
-                }
-            }
-        }
-        return walls;
-    }
+ 
 }
