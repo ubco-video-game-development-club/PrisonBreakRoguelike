@@ -129,9 +129,9 @@ public class LevelController : MonoBehaviour
             float sizeX = (roomSize * tileScale * angle.x) / 2;
             float sizeY = (roomSize * tileScale * angle.y) / 2;
 
-            float offX = avx + sizeX - 1;
-            float offY = avy + sizeY - 1;
-
+            float offX = avx + sizeX /*- 1*/;
+            float offY = avy + sizeY /*- 1*/; 
+            
             Vector2 pos = new Vector2(offX + angle.y * i, offY + angle.x * i);
 
             Tile wallTile = Instantiate(tilePrefab, pos, Quaternion.identity);
