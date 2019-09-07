@@ -19,6 +19,7 @@ public class LevelController : MonoBehaviour
     {
         InitializeRooms();
         InitializeExitPath();
+        SpawnPlayer();
     }
 
     private void InitializeRooms()
@@ -72,6 +73,14 @@ public class LevelController : MonoBehaviour
         }
     }
 
+    private void SpawnPlayer()
+    {
+        Room spawn = rooms[spawnX, spawnY];
+        Vector3 roomPos = spawn.transform.position;
+        Vector3 offset = new Vector2(roomSize * tileScale / 2, roomSize * tileScale / 2);
+        GameObject.FindGameObjectWithTag("Player").transform.position = roomPos + offset;
+    }
+
     private List<Room> GeneratePath(int startX, int startY, int endX, int endY)
     {
         List<Room> path;
@@ -102,7 +111,8 @@ public class LevelController : MonoBehaviour
         }
 
         Room next = GetRandomRoom(adjacentRooms);
-        GenerateWall(rooms[x, y], next);
+        List<Tile> wall = GenerateWall(rooms[x, y], next);
+        GenerateRandomDoor(wall);
         next.visited = true;
         path.Add(next);
 
@@ -154,6 +164,20 @@ public class LevelController : MonoBehaviour
         }
 
         return wall;
+    }
+
+    private void GenerateRandomDoor(List<Tile> wall)
+    {
+        List<Tile> validTiles = wall.GetRange(2, wall.Count - 4);
+        List<Tile> chosenTiles = new List<Tile>();
+        Tile centerTile = GetRandomTile(validTiles);
+        chosenTiles.Add(centerTile);
+        chosenTiles.Add(wall[wall.IndexOf(centerTile) - 1]);
+        chosenTiles.Add(wall[wall.IndexOf(centerTile) + 1]);
+        foreach (Tile tile in chosenTiles)
+        {
+            tile.GetComponent<SpriteRenderer>().color = Color.white;
+        }
     }
 
     private void ClearVisited()
@@ -216,6 +240,12 @@ public class LevelController : MonoBehaviour
     {
         int rand = Random.Range(0, rooms.Count);
         return rooms[rand];
+    }
+
+    private Tile GetRandomTile(List<Tile> tiles)
+    {
+        int rand = Random.Range(0, tiles.Count);
+        return tiles[rand];
     }
 
     void Update()
