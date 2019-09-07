@@ -118,27 +118,41 @@ public class LevelController : MonoBehaviour
     private List<Tile> GenerateWall(Room room1, Room room2)
     {
         List<Tile> wall = new List<Tile>();
-        Vector2 angle = new Vector2(Mathf.Abs(room2.x - room1.x), Mathf.Abs(room2.y - room2.y));
-        angle.Normalize();
+
+        // If room2 is below or to the left, don't offset (0)
+        // If room2 is above or to the right, offset (1)
+        int dirX = Mathf.Clamp(room2.x - room1.x, -1, 1);
+        int dirY = Mathf.Clamp(room2.y - room1.y, -1, 1);
+
+        // Get the world position of room 1
+        float startX = room1.transform.position.x; 
+        float startY = room1.transform.position.y;
+
+        // Offset by 1 room if dir is 1
+        float offsetX = (roomSize + 1) * tileScale * Mathf.Clamp(dirX, 0, 1);
+        float offsetY = (roomSize + 1) * tileScale * Mathf.Clamp(dirY, 0, 1);
+
+        // Offset by half tileScale because tiles are center-aligned
+        float tileOffset = 0.5f * tileScale;
+
+        // Offset by -1 tilescale in the current direction
+        float dirOffsetX = -tileScale * Mathf.Abs(dirX);
+        float dirOffsetY = -tileScale * Mathf.Abs(dirY);
+
+        float posX = startX + offsetX + tileOffset + dirOffsetX;
+        float posY = startY + offsetY + tileOffset + dirOffsetY;
 
         for(int i = 0; i < roomSize; i++)
         {
-            float avx = (room1.transform.position.x + room2.transform.position.x) / 2 ; 
-            float avy = (room1.transform.position.y + room2.transform.position.y) / 2 ;
-
-            float sizeX = (roomSize * tileScale * angle.x) / 2;
-            float sizeY = (roomSize * tileScale * angle.y) / 2;
-
-            float offX = avx + sizeX - 1;
-            float offY = avy + sizeY - 1;
-
-            Vector2 pos = new Vector2(offX + angle.y * i, offY + angle.x * i);
-
+            float indexX = (Mathf.Abs(dirY) * i);
+            float indexY = (Mathf.Abs(dirX) * i);
+            Vector2 pos = new Vector2(posX + indexX, posY + indexY);
             Tile wallTile = Instantiate(tilePrefab, pos, Quaternion.identity);
-            wallTile.GetComponent<SpriteRenderer>().color = Color.grey;
+            wallTile.name = "WallTile[" + pos.x + ", " + pos.y + "]";
+            wallTile.GetComponent<SpriteRenderer>().color = Color.yellow;
             wall.Add(wallTile);
-
         }
+
         return wall;
     }
 
