@@ -10,21 +10,29 @@ public class LevelController : MonoBehaviour
     public int spawnX, spawnY;
     [Tooltip("The minimum distance from the player's start location that the exit to the next level will spawn.")]
     public int exitDistance = 1;
+    public BranchMode branchMode;
+    [Tooltip("The probability of a room to skip the branch algorithm.")]
+    public float skipProbability;
+    [Tooltip("The probability of a room to branch off in a given direction.")]
+    public float branchProbability;
     public Room roomPrefab;
     public Tile tilePrefab;
+    public Tile wallTilePrefab;
 
     private Room[,] rooms;
+    private Dictionary<string, List<Tile>> walls;
 
     void Start()
     {
+        rooms = new Room[width, height];
+        walls = new Dictionary<string, List<Tile>>();
         InitializeRooms();
-        InitializeExitPath();
+        GenerateLevel();
         SpawnPlayer();
     }
 
     private void InitializeRooms()
     {
-        rooms = new Room[width, height];
         Transform parentRoom = new GameObject("Rooms").transform;
         for (int i = 0; i < width; i++)
         {
@@ -41,7 +49,7 @@ public class LevelController : MonoBehaviour
         }
     }
 
-    private void InitializeExitPath()
+    private void GenerateLevel()
     {
         List<Room> validExits = new List<Room>();
         for (int i = 0; i < width; i++)
@@ -56,7 +64,9 @@ public class LevelController : MonoBehaviour
         }
         Room exit = GetRandomRoom(validExits);
         List<Room> exitPath = GeneratePath(exit.x, exit.y, spawnX, spawnY);
-        foreach (Room room in exitPath)
+        List<Room> generatedRooms = GenerateBranches(exitPath);
+        GenerateBoundaryWall();
+        foreach (Room room in generatedRooms)
         {
             if (room.x == spawnX && room.y == spawnY)
             {
@@ -66,11 +76,16 @@ public class LevelController : MonoBehaviour
             {
                 room.InitializeTiles(tilePrefab, roomSize, tileScale, Color.red);
             }
+            else if (exitPath.Contains(room))
+            {
+                room.InitializeTiles(tilePrefab, roomSize, tileScale, Color.green);
+            }
             else
             {
                 room.InitializeTiles(tilePrefab, roomSize, tileScale, Color.white);
             }
         }
+        Debug.Log("Done");
     }
 
     private void SpawnPlayer()
@@ -98,6 +113,8 @@ public class LevelController : MonoBehaviour
         }
         while (path == null);
 
+        GeneratePathWalls(path);
+
         return path;
     }
 
@@ -111,8 +128,6 @@ public class LevelController : MonoBehaviour
         }
 
         Room next = GetRandomRoom(adjacentRooms);
-        List<Tile> wall = GenerateWall(rooms[x, y], next);
-        GenerateRandomDoor(wall);
         next.visited = true;
         path.Add(next);
 
@@ -122,6 +137,128 @@ public class LevelController : MonoBehaviour
         }
 
         return GeneratePath(path, next.x, next.y, endX, endY);
+    }
+
+    private void GeneratePathWalls(List<Room> path)
+    {
+        ClearVisited();
+        for (int i = 0; i < path.Count; i++)
+        {
+            Room room = path[i];
+            room.visited = true;
+
+            // Generate walls
+            List<Room> adjacentRooms = GetAdjacentRooms(room.x, room.y);
+            foreach (Room adj in adjacentRooms)
+            {
+                List<Tile> wall = GetWall(room, adj);
+                if (wall == null)
+                {
+                    wall = GenerateWall(room, adj);
+                }
+            }
+            
+            // Connect the path with doors
+            if (i < path.Count - 1)
+            {
+                List<Tile> wall = GetWall(room, path[i+1]);
+                GenerateRandomDoor(wall);
+            }
+        }
+    }
+
+    private List<Room> GenerateBranches(List<Room> path)
+    {
+        List<Room> generatedRooms = new List<Room>();
+
+        // start from the spawn point
+        path.Reverse();
+        List<Room> roomList = new List<Room>(path);
+        while (roomList.Count > 0)
+        {
+            Room room = roomList[0];
+            roomList.RemoveAt(0);
+            room.visited = true;
+            
+            if (generatedRooms.Contains(room))
+            {
+                continue;
+            }
+            generatedRooms.Add(room);
+
+            // chance to not branch at all from this room
+            bool skipBranching = Random.Range(0, 1.0f) < skipProbability;
+
+            List<Room> adjacentRooms = GetAdjacentRooms(room.x, room.y);
+            foreach (Room adj in adjacentRooms)
+            {
+                List<Tile> wall = GetWall(room, adj);
+                if (wall == null)
+                {
+                    wall = GenerateWall(room, adj);
+                }
+
+                if (!skipBranching && Random.Range(0, 1.0f) < branchProbability)
+                {
+                    if (branchMode == BranchMode.DEPTH_FIRST)
+                    {
+                        // depth-first uses stack
+                        roomList.Insert(0, adj);
+                    }
+                    else if (branchMode == BranchMode.BREADTH_FIRST)
+                    {
+                        // breadth-first uses queue
+                        roomList.Add(adj);
+                    }
+                    GenerateRandomDoor(wall);
+                }
+            }
+        }
+
+        return generatedRooms;
+    }
+
+    private void GenerateBoundaryWall()
+    {
+        float posX = transform.position.x;
+        float posY = transform.position.y;
+        Vector2 tileOffset = new Vector2(tileScale / 2, tileScale / 2);
+
+        for (int i = 0; i < width * (roomSize + 1) - 1; i++)
+        {
+            // Create the bottom wall
+            Vector2 pos = new Vector2(posX + (i * tileScale), posY - tileScale);
+
+            Tile wallTile = Instantiate(wallTilePrefab, pos + tileOffset, Quaternion.identity);
+            wallTile.name = "WallTile[" + pos.x + ", " + pos.y + "]";
+            wallTile.GetComponent<SpriteRenderer>().color = Color.yellow;
+
+            // Create the top wall
+            float heightScale = height * (roomSize + 1) * tileScale;
+            pos = new Vector2(posX + (i * tileScale), posY + heightScale - tileScale);
+
+            wallTile = Instantiate(wallTilePrefab, pos + tileOffset, Quaternion.identity);
+            wallTile.name = "WallTile[" + pos.x + ", " + pos.y + "]";
+            wallTile.GetComponent<SpriteRenderer>().color = Color.yellow;
+        }
+
+        for (int i = 0; i < height * (roomSize + 1) - 1; i++)
+        {
+            // Create the left wall
+            Vector2 pos = new Vector2(posX - tileScale, posY + (i * tileScale));
+
+            Tile wallTile = Instantiate(wallTilePrefab, pos + tileOffset, Quaternion.identity);
+            wallTile.name = "WallTile[" + pos.x + ", " + pos.y + "]";
+            wallTile.GetComponent<SpriteRenderer>().color = Color.yellow;
+
+            // Create the right wall
+            float widthScale = width * (roomSize + 1) * tileScale;
+            pos = new Vector2(posX + widthScale - tileScale, posY  + (i * tileScale));
+
+            wallTile = Instantiate(wallTilePrefab, pos + tileOffset, Quaternion.identity);
+            wallTile.name = "WallTile[" + pos.x + ", " + pos.y + "]";
+            wallTile.GetComponent<SpriteRenderer>().color = Color.yellow;
+        }
     }
 
     //Generates a wall between two rooms
@@ -157,11 +294,16 @@ public class LevelController : MonoBehaviour
             float indexX = (Mathf.Abs(dirY) * i);
             float indexY = (Mathf.Abs(dirX) * i);
             Vector2 pos = new Vector2(posX + indexX, posY + indexY);
-            Tile wallTile = Instantiate(tilePrefab, pos, Quaternion.identity);
+            Tile wallTile = Instantiate(wallTilePrefab, pos, Quaternion.identity);
             wallTile.name = "WallTile[" + pos.x + ", " + pos.y + "]";
             wallTile.GetComponent<SpriteRenderer>().color = Color.yellow;
             wall.Add(wallTile);
         }
+
+        string key1 = room1.ToString() + room2.ToString();
+        string key2 = room2.ToString() + room1.ToString();
+        walls.Add(key1, wall);
+        walls.Add(key2, wall);
 
         return wall;
     }
@@ -176,6 +318,7 @@ public class LevelController : MonoBehaviour
         chosenTiles.Add(wall[wall.IndexOf(centerTile) + 1]);
         foreach (Tile tile in chosenTiles)
         {
+            tile.GetComponent<BoxCollider2D>().isTrigger = true;
             tile.GetComponent<SpriteRenderer>().color = Color.white;
         }
     }
@@ -189,6 +332,18 @@ public class LevelController : MonoBehaviour
                 rooms[i, j].visited = false;
             }
         }
+    }
+
+    // Returns the wall if it exists or null if not
+    private List<Tile> GetWall(Room room1, Room room2)
+    {
+        string key = room1.ToString() + room2.ToString();
+        return walls.ContainsKey(key) ? walls[key] : null;
+    }
+
+    private List<Room> GetAdjacentRooms(Room room)
+    {
+        return GetAdjacentRooms(room.x, room.y);
     }
 
     private List<Room> GetAdjacentRooms(int x, int y)
