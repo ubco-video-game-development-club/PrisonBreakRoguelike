@@ -1,5 +1,5 @@
 # Prison Break Game!!!
-Description and stuff!
+A top down roguelike, where you play as a brave convict trying to escape from a seemingly neverending prison complex
 
 ## How to use GitHub with Unity
 This is mostly copy-pasted from the Open Project, but it gives a good rundown of how to easily use GitHub with Unity:
