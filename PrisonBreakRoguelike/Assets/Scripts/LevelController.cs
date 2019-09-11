@@ -275,19 +275,12 @@ public class LevelController : MonoBehaviour
         float startX = room1.transform.position.x; 
         float startY = room1.transform.position.y;
 
-<<<<<<< HEAD
-            float offX = avx + sizeX /*- 1*/;
-            float offY = avy + sizeY /*- 1*/; 
-            
-            Vector2 pos = new Vector2(offX + angle.y * i, offY + angle.x * i);
-=======
         // Offset by 1 room if dir is 1
         float offsetX = (roomSize + 1) * tileScale * Mathf.Clamp(dirX, 0, 1);
         float offsetY = (roomSize + 1) * tileScale * Mathf.Clamp(dirY, 0, 1);
 
         // Offset by half tileScale because tiles are center-aligned
         float tileOffset = 0.5f * tileScale;
->>>>>>> 6c9ef66161fb054141daacc4148cad95f3bc64b0
 
         // Offset by -1 tilescale in the current direction
         float dirOffsetX = -tileScale * Mathf.Abs(dirX);
