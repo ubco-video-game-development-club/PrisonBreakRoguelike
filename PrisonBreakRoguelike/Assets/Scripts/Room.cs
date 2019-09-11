@@ -42,5 +42,16 @@ public class Room : MonoBehaviour
             }
         }
     }
+
+    public void InitializeRoom(List<GameObject[]> Objects) //Init room with each tile randomly selected from a few given arrays of objects, ideally with weights corrisponding to the liklihood of each array being chosen
+    {
+        foreach (Tile tile in tiles)
+        {
+            int rand = Random.Range(0, Objects.Count);
+            GameObject[] choices = Objects[rand];
+            int randFromArray = Random.Range(0, choices.Length);
+            tile.occupant = choices[randFromArray];
+        }
+    }
  
 }
