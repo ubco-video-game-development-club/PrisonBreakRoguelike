@@ -48,6 +48,9 @@ public class LevelController : MonoBehaviour
                 room.x = i;
                 room.y = j;
                 rooms[i, j] = room;
+                room.InitializeObjects(decoPrefabs);
+                room.InitializeObjects(itemPrefabs);
+                room.InitializeObjects(enemyPrefabs);
             }
         }
     }
