@@ -4,14 +4,12 @@ using UnityEngine;
 
 public class Room : MonoBehaviour
 {
-  
     [HideInInspector]
     public int x, y;
     [HideInInspector]
     public bool visited = false;
 
     private Tile[,] tiles;
-
 
     public Tile GetTile(int x, int y)
     {
@@ -53,5 +51,4 @@ public class Room : MonoBehaviour
             tile.occupant = choices[randFromArray];
         }
     }
- 
 }
