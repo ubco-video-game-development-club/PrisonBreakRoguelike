@@ -18,6 +18,9 @@ public class LevelController : MonoBehaviour
     public Room roomPrefab;
     public Tile tilePrefab;
     public Tile wallTilePrefab;
+    public GameObject[] decoPrefabs;
+    public GameObject[] itemPrefabs;
+    public GameObject[] enemyPrefabs;
 
     private Room[,] rooms;
     private Dictionary<string, List<Tile>> walls;
