@@ -37,18 +37,39 @@ public class Room : MonoBehaviour
                 tile.x = i;
                 tile.y = j;
                 tiles[i, j] = tile;
+                tile.pos = pos;
             }
         }
     }
 
-    public void InitializeRoom(List<GameObject[]> Objects) //Init room with each tile randomly selected from a few given arrays of objects, ideally with weights corrisponding to the liklihood of each array being chosen
+    public void InitializeObjects(GameObject[] decoPrefabs, GameObject[] itemPrefabs, GameObject[] enemyPrefabs, float decoChance, float itemChance, float enemyChance, float emptyChance) 
+    //Generates too many objects(one on each tile) -needs to be fixed
     {
-        foreach (Tile tile in tiles)
-        {
-            int rand = Random.Range(0, Objects.Count);
-            GameObject[] choices = Objects[rand];
-            int randFromArray = Random.Range(0, choices.Length);
-            tile.occupant = choices[randFromArray];
+        GameObject[] objects = null;
+        foreach(Tile tile in tiles)
+        {           
+            if(tile.occupant == null)
+            {
+                float rand = Random.Range(0f, 1f);
+
+                if (rand < enemyChance)
+                    objects = enemyPrefabs;
+
+                else if (rand < enemyChance + itemChance)
+                    objects = itemPrefabs;
+
+                else if (rand < decoChance + enemyChance + itemChance)
+                    objects = decoPrefabs;
+                else
+                    continue;
+                
+                if (objects != null)
+                {
+                    int randIndex = Random.Range(0, objects.Length); 
+                    tile.occupant = Instantiate(objects[randIndex], tile.pos, Quaternion.identity);
+                }
+                }
+            }   
         }
     }
-}
+
