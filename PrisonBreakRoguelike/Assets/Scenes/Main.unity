@@ -333,9 +333,10 @@ MonoBehaviour:
     type: 3}
   wallTilePrefab: {fileID: 1821460673159588804, guid: 8aae42b0e2112b343a4351d99ef39009,
     type: 3}
-  decoChance: 0.3
-  itemChance: 0.1
-  enemyChance: 0.1
+  decoChance: 0.03
+  itemChance: 0.05
+  enemyChance: 0.01
+  emptyChance: 0
   decoPrefabs:
   - {fileID: 1851285876764668049, guid: af29998537a15024aaeeac7710a3369a, type: 3}
   - {fileID: 1851285876764668049, guid: af29998537a15024aaeeac7710a3369a, type: 3}
