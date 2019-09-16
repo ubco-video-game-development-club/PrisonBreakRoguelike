@@ -22,20 +22,26 @@ public class LevelController : MonoBehaviour
     public GameObject[] decoPrefabs;
     public GameObject[] itemPrefabs;
     public GameObject[] enemyPrefabs;
+    [Tooltip("Wall tile sprites with index based on adjacent tiles: 1 = top, 2 = right, 4 = bottom, 8 = left.")]
+    public Sprite[] wallSprites = new Sprite[16];
 
     private Room[,] rooms;
     private Dictionary<string, List<Tile>> walls;
+    private Dictionary<Vector2, Tile> wallTileLookup;
+    private Transform wallTileParent;
 
     void Start()
     {
         rooms = new Room[width, height];
         walls = new Dictionary<string, List<Tile>>();
-        InitializeRooms();
+        wallTileLookup = new Dictionary<Vector2, Tile>();
+        wallTileParent = new GameObject("Walls").transform;
+        InitializeGrid();
         GenerateLevel();
         SpawnPlayer();
     }
 
-    private void InitializeRooms()
+    private void InitializeGrid()
     {
         Transform parentRoom = new GameObject("Rooms").transform;
         for (int i = 0; i < width; i++)
@@ -70,6 +76,7 @@ public class LevelController : MonoBehaviour
         List<Room> exitPath = GeneratePath(exit.x, exit.y, spawnX, spawnY);
         List<Room> generatedRooms = GenerateBranches(exitPath);
         GenerateBoundaryWall();
+        AssignWallSprites();
         foreach (Room room in generatedRooms)
         {
             if (room.x == spawnX && room.y == spawnY)
@@ -82,7 +89,7 @@ public class LevelController : MonoBehaviour
             }
             else if (exitPath.Contains(room))
             {
-                room.InitializeTiles(tilePrefab, roomSize, tileScale, Color.green);
+                room.InitializeTiles(tilePrefab, roomSize, tileScale, Color.white);
             }
             else
             {
@@ -234,17 +241,13 @@ public class LevelController : MonoBehaviour
             // Create the bottom wall
             Vector2 pos = new Vector2(posX + (i * tileScale), posY - tileScale);
 
-            Tile wallTile = Instantiate(wallTilePrefab, pos + tileOffset, Quaternion.identity);
-            wallTile.name = "WallTile[" + pos.x + ", " + pos.y + "]";
-            wallTile.GetComponent<SpriteRenderer>().color = Color.yellow;
+            Tile wallTile = CreateWallTile(pos + tileOffset);
 
             // Create the top wall
             float heightScale = height * (roomSize + 1) * tileScale;
             pos = new Vector2(posX + (i * tileScale), posY + heightScale - tileScale);
 
-            wallTile = Instantiate(wallTilePrefab, pos + tileOffset, Quaternion.identity);
-            wallTile.name = "WallTile[" + pos.x + ", " + pos.y + "]";
-            wallTile.GetComponent<SpriteRenderer>().color = Color.yellow;
+            wallTile = CreateWallTile(pos + tileOffset);
         }
 
         for (int i = 0; i < height * (roomSize + 1) - 1; i++)
@@ -252,17 +255,13 @@ public class LevelController : MonoBehaviour
             // Create the left wall
             Vector2 pos = new Vector2(posX - tileScale, posY + (i * tileScale));
 
-            Tile wallTile = Instantiate(wallTilePrefab, pos + tileOffset, Quaternion.identity);
-            wallTile.name = "WallTile[" + pos.x + ", " + pos.y + "]";
-            wallTile.GetComponent<SpriteRenderer>().color = Color.yellow;
+            Tile wallTile = CreateWallTile(pos + tileOffset);
 
             // Create the right wall
             float widthScale = width * (roomSize + 1) * tileScale;
             pos = new Vector2(posX + widthScale - tileScale, posY  + (i * tileScale));
 
-            wallTile = Instantiate(wallTilePrefab, pos + tileOffset, Quaternion.identity);
-            wallTile.name = "WallTile[" + pos.x + ", " + pos.y + "]";
-            wallTile.GetComponent<SpriteRenderer>().color = Color.yellow;
+            wallTile = CreateWallTile(pos + tileOffset);
         }
     }
 
@@ -271,8 +270,7 @@ public class LevelController : MonoBehaviour
     {
         List<Tile> wall = new List<Tile>();
 
-        // If room2 is below or to the left, don't offset (0)
-        // If room2 is above or to the right, offset (1)
+        // Get the direction of the wall with respect to room 1
         int dirX = Mathf.Clamp(room2.x - room1.x, -1, 1);
         int dirY = Mathf.Clamp(room2.y - room1.y, -1, 1);
 
@@ -287,21 +285,20 @@ public class LevelController : MonoBehaviour
         // Offset by half tileScale because tiles are center-aligned
         float tileOffset = 0.5f * tileScale;
 
-        // Offset by -1 tilescale in the current direction
+        // Offset by -1 tilescale
         float dirOffsetX = -tileScale * Mathf.Abs(dirX);
         float dirOffsetY = -tileScale * Mathf.Abs(dirY);
 
         float posX = startX + offsetX + tileOffset + dirOffsetX;
         float posY = startY + offsetY + tileOffset + dirOffsetY;
 
-        for(int i = 0; i < roomSize; i++)
+        // Include corner tiles at the ends of the wall
+        for(int i = -1; i < roomSize + 1; i++)
         {
-            float indexX = (Mathf.Abs(dirY) * i);
-            float indexY = (Mathf.Abs(dirX) * i);
+            float indexX = (Mathf.Abs(dirY) * i) * tileScale;
+            float indexY = (Mathf.Abs(dirX) * i) * tileScale;
             Vector2 pos = new Vector2(posX + indexX, posY + indexY);
-            Tile wallTile = Instantiate(wallTilePrefab, pos, Quaternion.identity);
-            wallTile.name = "WallTile[" + pos.x + ", " + pos.y + "]";
-            wallTile.GetComponent<SpriteRenderer>().color = Color.yellow;
+            Tile wallTile = CreateWallTile(pos);
             wall.Add(wallTile);
         }
 
@@ -323,8 +320,35 @@ public class LevelController : MonoBehaviour
         chosenTiles.Add(wall[wall.IndexOf(centerTile) + 1]);
         foreach (Tile tile in chosenTiles)
         {
+            wallTileLookup.Remove(tile.transform.position);
             tile.GetComponent<BoxCollider2D>().isTrigger = true;
             tile.GetComponent<SpriteRenderer>().color = Color.white;
+        }
+    }
+
+    private void AssignWallSprites()
+    {
+        foreach (Tile wallTile in wallTileLookup.Values)
+        {
+            int spriteIndex = 0;
+
+            // top = 1
+            Vector2 top = wallTile.transform.position + new Vector3(0, tileScale);
+            spriteIndex += wallTileLookup.ContainsKey(top) ? 1 : 0;
+            
+            // right = 2
+            Vector2 right = wallTile.transform.position + new Vector3(tileScale, 0);
+            spriteIndex += wallTileLookup.ContainsKey(right) ? 2 : 0;
+            
+            // top = 4
+            Vector2 bottom = wallTile.transform.position + new Vector3(0, -tileScale);
+            spriteIndex += wallTileLookup.ContainsKey(bottom) ? 4 : 0;
+            
+            // top = 8
+            Vector2 left = wallTile.transform.position + new Vector3(-tileScale, 0);
+            spriteIndex += wallTileLookup.ContainsKey(left) ? 8 : 0;
+
+            wallTile.GetComponent<SpriteRenderer>().sprite = wallSprites[spriteIndex];
         }
     }
 
@@ -337,6 +361,20 @@ public class LevelController : MonoBehaviour
                 rooms[i, j].visited = false;
             }
         }
+    }
+
+    // Creates a wall tile at the given position or returns 
+    // the wall tile that currently exists at that position
+    private Tile CreateWallTile(Vector2 pos)
+    {
+        if (wallTileLookup.ContainsKey(pos))
+        {
+            return wallTileLookup[pos];
+        }
+        Tile wallTile = Instantiate(wallTilePrefab, pos, Quaternion.identity, wallTileParent);
+        wallTile.name = "WallTile[" + pos.x + ", " + pos.y + "]";
+        wallTileLookup.Add(pos, wallTile);
+        return wallTile;
     }
 
     // Returns the wall if it exists or null if not
