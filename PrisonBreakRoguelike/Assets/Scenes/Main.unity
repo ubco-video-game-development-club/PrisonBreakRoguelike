@@ -333,22 +333,30 @@ MonoBehaviour:
     type: 3}
   wallTilePrefab: {fileID: 1821460673159588804, guid: 8aae42b0e2112b343a4351d99ef39009,
     type: 3}
-
-  decoChance: 0.03
-  itemChance: 0.05
-  enemyChance: 0.01
+  decoChance: 0
+  itemChance: 0
+  enemyChance: 0
   emptyChance: 0
-  decoPrefabs:
-  - {fileID: 1851285876764668049, guid: af29998537a15024aaeeac7710a3369a, type: 3}
-  - {fileID: 1851285876764668049, guid: af29998537a15024aaeeac7710a3369a, type: 3}
-  - {fileID: 1851285876764668049, guid: af29998537a15024aaeeac7710a3369a, type: 3}
-  itemPrefabs:
-  - {fileID: 3289276897554152764, guid: da5c1626fe50d7748b0e0a8422ce260f, type: 3}
-  - {fileID: 3289276897554152764, guid: da5c1626fe50d7748b0e0a8422ce260f, type: 3}
-  enemyPrefabs:
-  - {fileID: 4230772297360717752, guid: 97d0ef8ad611c2e4194aa4a28d57fb42, type: 3}
-  - {fileID: 4230772297360717752, guid: 97d0ef8ad611c2e4194aa4a28d57fb42, type: 3}
-
+  decoPrefabs: []
+  itemPrefabs: []
+  enemyPrefabs: []
+  wallSprites:
+  - {fileID: 0}
+  - {fileID: 3282540719923212710, guid: d44e825f04b130a4f940147a725e8782, type: 3}
+  - {fileID: 2110751477236507612, guid: d44e825f04b130a4f940147a725e8782, type: 3}
+  - {fileID: -6917235711995896916, guid: d44e825f04b130a4f940147a725e8782, type: 3}
+  - {fileID: -6814867410136062403, guid: d44e825f04b130a4f940147a725e8782, type: 3}
+  - {fileID: 4332606359113802991, guid: d44e825f04b130a4f940147a725e8782, type: 3}
+  - {fileID: 7790070931059203165, guid: d44e825f04b130a4f940147a725e8782, type: 3}
+  - {fileID: 795347732686270468, guid: d44e825f04b130a4f940147a725e8782, type: 3}
+  - {fileID: -2002408753369763598, guid: d44e825f04b130a4f940147a725e8782, type: 3}
+  - {fileID: -1701848857682960945, guid: d44e825f04b130a4f940147a725e8782, type: 3}
+  - {fileID: 5353389776744267133, guid: d44e825f04b130a4f940147a725e8782, type: 3}
+  - {fileID: 1320547706577399808, guid: d44e825f04b130a4f940147a725e8782, type: 3}
+  - {fileID: 8230459684595585776, guid: d44e825f04b130a4f940147a725e8782, type: 3}
+  - {fileID: -1819741813952534947, guid: d44e825f04b130a4f940147a725e8782, type: 3}
+  - {fileID: -5666112366125880409, guid: d44e825f04b130a4f940147a725e8782, type: 3}
+  - {fileID: -1488151570027504278, guid: d44e825f04b130a4f940147a725e8782, type: 3}
 --- !u!4 &1588575893
 Transform:
   m_ObjectHideFlags: 0
