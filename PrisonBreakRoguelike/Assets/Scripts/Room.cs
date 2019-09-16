@@ -43,7 +43,6 @@ public class Room : MonoBehaviour
     }
 
     public void InitializeObjects(GameObject[] decoPrefabs, GameObject[] itemPrefabs, GameObject[] enemyPrefabs, float decoChance, float itemChance, float enemyChance, float emptyChance) 
-    //Generates too many objects(one on each tile) -needs to be fixed
     {
         GameObject[] objects = null;
         foreach(Tile tile in tiles)
