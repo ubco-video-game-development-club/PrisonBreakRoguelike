@@ -333,13 +333,20 @@ MonoBehaviour:
     type: 3}
   wallTilePrefab: {fileID: 1821460673159588804, guid: 8aae42b0e2112b343a4351d99ef39009,
     type: 3}
-  decoChance: 0
-  itemChance: 0
-  enemyChance: 0
+  decoChance: 0.02
+  itemChance: 0.01
+  enemyChance: 0.005
   emptyChance: 0
-  decoPrefabs: []
-  itemPrefabs: []
-  enemyPrefabs: []
+  decoPrefabs:
+  - {fileID: 1851285876764668049, guid: af29998537a15024aaeeac7710a3369a, type: 3}
+  - {fileID: 1851285876764668049, guid: af29998537a15024aaeeac7710a3369a, type: 3}
+  itemPrefabs:
+  - {fileID: 3289276897554152764, guid: da5c1626fe50d7748b0e0a8422ce260f, type: 3}
+  - {fileID: 3289276897554152764, guid: da5c1626fe50d7748b0e0a8422ce260f, type: 3}
+  - {fileID: 3289276897554152764, guid: da5c1626fe50d7748b0e0a8422ce260f, type: 3}
+  enemyPrefabs:
+  - {fileID: 4230772297360717752, guid: 97d0ef8ad611c2e4194aa4a28d57fb42, type: 3}
+  - {fileID: 4230772297360717752, guid: 97d0ef8ad611c2e4194aa4a28d57fb42, type: 3}
   wallSprites:
   - {fileID: 0}
   - {fileID: 3282540719923212710, guid: d44e825f04b130a4f940147a725e8782, type: 3}
