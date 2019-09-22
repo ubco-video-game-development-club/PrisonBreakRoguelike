@@ -12,9 +12,10 @@ GameObject:
   - component: {fileID: 900098434320979443}
   - component: {fileID: 4973553382609613313}
   - component: {fileID: 4295503983747233292}
+  - component: {fileID: 8853236869321035694}
   m_Layer: 0
   m_Name: Item
-  m_TagString: Untagged
+  m_TagString: Item
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -130,3 +131,18 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
+--- !u!114 &8853236869321035694
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3289276897554152764}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 659841fe1e85df640a7ed86e732eabf9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  itemType: 0
+  hoverTextPrefab: {fileID: 5169261403701702555, guid: 631fec21c6372204b95c8e9e5f5290b3,
+    type: 3}

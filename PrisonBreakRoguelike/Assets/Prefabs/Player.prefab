@@ -145,6 +145,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 5
+  pickupDistance: 3
 --- !u!114 &194630610
 MonoBehaviour:
   m_ObjectHideFlags: 0

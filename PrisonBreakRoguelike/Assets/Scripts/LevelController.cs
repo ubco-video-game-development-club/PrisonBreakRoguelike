@@ -105,7 +105,9 @@ public class LevelController : MonoBehaviour
         Room spawn = rooms[spawnX, spawnY];
         Vector3 roomPos = spawn.transform.position;
         Vector3 offset = new Vector2(roomSize * tileScale / 2, roomSize * tileScale / 2);
-        GameObject.FindGameObjectWithTag("Player").transform.position = roomPos + offset;
+        Player player = GameObject.FindGameObjectWithTag("Player").GetComponent<Player>();
+        player.transform.position = roomPos + offset;
+        player.currentRoom = spawn;
     }
 
     private List<Room> GeneratePath(int startX, int startY, int endX, int endY)
