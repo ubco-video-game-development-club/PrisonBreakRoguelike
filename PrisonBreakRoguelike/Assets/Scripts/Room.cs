@@ -42,7 +42,7 @@ public class Room : MonoBehaviour
         }
     }
 
-    public void InitializeObjects(GameObject[] decoPrefabs, GameObject[] itemPrefabs, GameObject[] enemyPrefabs, float decoChance, float itemChance, float enemyChance, float emptyChance) 
+    public void InitializeObjects(GameObject[] decoPrefabs, GameObject[] itemPrefabs, GameObject[] enemyPrefabs, float decoChance, float itemChance, float enemyChance) 
     {
         GameObject[] objects = null;
         foreach(Tile tile in tiles)
@@ -52,23 +52,29 @@ public class Room : MonoBehaviour
                 float rand = Random.Range(0f, 1f);
 
                 if (rand < enemyChance)
+                {
                     objects = enemyPrefabs;
-
+                }
                 else if (rand < enemyChance + itemChance)
+                {
                     objects = itemPrefabs;
-
+                }
                 else if (rand < decoChance + enemyChance + itemChance)
+                {
                     objects = decoPrefabs;
+                }
                 else
+                {
                     continue;
+                }
                 
                 if (objects != null)
                 {
                     int randIndex = Random.Range(0, objects.Length); 
                     tile.occupant = Instantiate(objects[randIndex], tile.pos, Quaternion.identity);
                 }
-                }
-            }   
-        }
+            }
+        }   
     }
+}
 

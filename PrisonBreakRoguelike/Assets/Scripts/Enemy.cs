@@ -14,7 +14,7 @@ public class Enemy : MonoBehaviour
     }
 
     void FixedUpdate()
-    {  
+    { 
         Patrol();
     }
 
@@ -42,7 +42,7 @@ public class Enemy : MonoBehaviour
     private Vector3 NewTargetLocation()
     {
         //random distance guard will move within radius of 10
-        var offset = Random.insideUnitCircle * 10; 
+        Vector2 offset = Random.insideUnitCircle * 10; 
 
         //insideUnitCircle returns point relative to world point, so add this value to current enemy location
         Vector3 newTarget = new Vector3(offset.x, offset.y, 0) + gameObject.transform.position;
