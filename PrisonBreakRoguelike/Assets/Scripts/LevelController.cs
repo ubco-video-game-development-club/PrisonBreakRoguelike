@@ -18,7 +18,7 @@ public class LevelController : MonoBehaviour
     public Room roomPrefab;
     public Tile tilePrefab;
     public Tile wallTilePrefab;
-    public float decoChance, itemChance, enemyChance, emptyChance; //enemyChance + itemChance + decoChance + emptyChance = 100% 
+    public float decoChance, itemChance, enemyChance; //enemyChance + itemChance + decoChance + emptyChance = 100% 
     public GameObject[] decoPrefabs;
     public GameObject[] itemPrefabs;
     public GameObject[] enemyPrefabs;
@@ -95,7 +95,7 @@ public class LevelController : MonoBehaviour
             {
                 room.InitializeTiles(tilePrefab, roomSize, tileScale, Color.white);
             }
-            room.InitializeObjects(decoPrefabs, itemPrefabs, enemyPrefabs, decoChance, itemChance, enemyChance, emptyChance); 
+            room.InitializeObjects(decoPrefabs, itemPrefabs, enemyPrefabs, decoChance, itemChance, enemyChance); 
         }
         Debug.Log("Done");
     }
