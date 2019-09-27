@@ -12,9 +12,10 @@ GameObject:
   - component: {fileID: 900098434320979443}
   - component: {fileID: 4973553382609613313}
   - component: {fileID: 4295503983747233292}
+  - component: {fileID: 8853236869321035694}
   m_Layer: 0
   m_Name: Item
-  m_TagString: Untagged
+  m_TagString: Item
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -72,8 +73,8 @@ SpriteRenderer:
   m_SortingLayerID: 391364537
   m_SortingLayer: 2
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: 889607d6e52071042b9c8d7981a23ed8, type: 3}
-  m_Color: {r: 0.8000001, g: 0.8000001, b: 0.02745098, a: 1}
+  m_Sprite: {fileID: 21300000, guid: 1942705903e65c54bad12fd387afe17d, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -130,3 +131,18 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
+--- !u!114 &8853236869321035694
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3289276897554152764}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 659841fe1e85df640a7ed86e732eabf9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  itemType: 0
+  idleColor: {r: 1, g: 0, b: 0.93007326, a: 1}
+  highlightColor: {r: 0, g: 1, b: 0.4595406, a: 1}

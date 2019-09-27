@@ -336,7 +336,6 @@ MonoBehaviour:
   decoChance: 0.02
   itemChance: 0.01
   enemyChance: 0.005
-  emptyChance: 0
   decoPrefabs:
   - {fileID: 1851285876764668049, guid: af29998537a15024aaeeac7710a3369a, type: 3}
   - {fileID: 1851285876764668049, guid: af29998537a15024aaeeac7710a3369a, type: 3}

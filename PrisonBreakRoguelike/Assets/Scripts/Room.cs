@@ -22,6 +22,30 @@ public class Room : MonoBehaviour
         return tiles[x, y];
     }
 
+    public List<Item> GetItems()
+    {
+        List<Item> items = new List<Item>();
+        if (tiles != null)
+        {
+            for (int i = 0; i < tiles.GetLength(0); i++)
+            {
+                for (int j = 0; j < tiles.GetLength(1); j++)
+                {
+                    GameObject occupant = tiles[i, j].occupant;
+                    if (occupant != null)
+                    {
+                        Item item;
+                        if (occupant.TryGetComponent<Item>(out item))
+                        {
+                            items.Add(item);
+                        }
+                    }
+                }
+            }
+        }
+        return items;
+    }
+
     public void InitializeTiles(Tile tilePrefab, int roomSize, float tileScale, Color tileColor)
     {
         tiles = new Tile[roomSize, roomSize];
@@ -40,6 +64,11 @@ public class Room : MonoBehaviour
                 tile.pos = pos;
             }
         }
+        // Fit the boxcollider of the room to the roomSize for raycasting
+        BoxCollider2D bc2d = GetComponent<BoxCollider2D>();
+        float roomScale = roomSize * tileScale;
+        bc2d.offset = new Vector2(roomScale / 2, roomScale / 2);
+        bc2d.size = new Vector2(roomScale, roomScale);
     }
 
     public void InitializeObjects(GameObject[] decoPrefabs, GameObject[] itemPrefabs, GameObject[] enemyPrefabs, float decoChance, float itemChance, float enemyChance) 
