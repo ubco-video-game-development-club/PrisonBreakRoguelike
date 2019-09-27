@@ -25,17 +25,20 @@ public class Room : MonoBehaviour
     public List<Item> GetItems()
     {
         List<Item> items = new List<Item>();
-        for (int i = 0; i < tiles.GetLength(0); i++)
+        if (tiles != null)
         {
-            for (int j = 0; j < tiles.GetLength(1); j++)
+            for (int i = 0; i < tiles.GetLength(0); i++)
             {
-                GameObject occupant = tiles[i, j].occupant;
-                if (occupant != null)
+                for (int j = 0; j < tiles.GetLength(1); j++)
                 {
-                    Item item;
-                    if (occupant.TryGetComponent<Item>(out item))
+                    GameObject occupant = tiles[i, j].occupant;
+                    if (occupant != null)
                     {
-                        items.Add(item);
+                        Item item;
+                        if (occupant.TryGetComponent<Item>(out item))
+                        {
+                            items.Add(item);
+                        }
                     }
                 }
             }

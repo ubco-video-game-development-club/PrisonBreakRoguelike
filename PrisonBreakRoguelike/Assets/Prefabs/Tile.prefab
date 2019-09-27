@@ -98,4 +98,5 @@ MonoBehaviour:
   y: 0
   isDoor: 0
   isWall: 0
+  pos: {x: 0, y: 0, z: 0}
   occupant: {fileID: 0}

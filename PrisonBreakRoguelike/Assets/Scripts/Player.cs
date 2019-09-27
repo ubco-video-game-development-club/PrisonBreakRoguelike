@@ -17,10 +17,10 @@ public class Player : MonoBehaviour
         UpdateInteraction();
     }
 
-    void OnCollisionEnter2D(Collision2D collision)
+    void OnTriggerEnter2D(Collider2D collider)
     {   
         Room room;
-        if (collision.gameObject.TryGetComponent<Room>(out room))
+        if (collider.TryGetComponent<Room>(out room))
         {
             Debug.Log("Yeet");
             currentRoom = room;
@@ -55,19 +55,27 @@ public class Player : MonoBehaviour
     private void UpdateInteraction()
     {
         Item item = GetClosestItem();
-        if (item == null || item.Equals(currentItemTarget))
+        if (item == null)
         {
+            if (currentItemTarget != null)
+            {
+                currentItemTarget.SetAsTarget(false);
+                currentItemTarget = null;
+            }
+
             return;
         }
 
-        if (currentItemTarget != null)
+        if (!item.Equals(currentItemTarget))
         {
-            currentItemTarget.SetAsTarget(false);
-        }
+            if (currentItemTarget != null)
+            {
+                currentItemTarget.SetAsTarget(false);
+            }
 
-        Debug.Log("Ya yeet");
-        item.SetAsTarget(true);
-        currentItemTarget = item;
+            item.SetAsTarget(true);
+            currentItemTarget = item;
+        }
 
         if (Input.GetKeyDown(KeyCode.E))
         {
@@ -87,6 +95,7 @@ public class Player : MonoBehaviour
                 }
             }
             Destroy(item.gameObject);
+            currentItemTarget = null;
         }
     }
 

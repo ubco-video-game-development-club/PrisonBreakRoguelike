@@ -73,8 +73,8 @@ SpriteRenderer:
   m_SortingLayerID: 391364537
   m_SortingLayer: 2
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: 889607d6e52071042b9c8d7981a23ed8, type: 3}
-  m_Color: {r: 0.8000001, g: 0.8000001, b: 0.02745098, a: 1}
+  m_Sprite: {fileID: 21300000, guid: 1942705903e65c54bad12fd387afe17d, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -144,5 +144,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   itemType: 0
-  hoverTextPrefab: {fileID: 5169261403701702555, guid: 631fec21c6372204b95c8e9e5f5290b3,
-    type: 3}
+  idleColor: {r: 1, g: 0, b: 0.93007326, a: 1}
+  highlightColor: {r: 0, g: 1, b: 0.4595406, a: 1}
