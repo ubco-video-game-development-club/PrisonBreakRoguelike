@@ -13,7 +13,7 @@ public class Stairs  : Item
 
      new public void  SetAsTarget(bool isTarget)
     {
-         LevelController.NewLevel(); //needs to be a static method
+         //LevelController.NewLevel(); //needs to be a static method
     }
 }
 
