@@ -37,10 +37,15 @@ public class LevelController : MonoBehaviour
         walls = new Dictionary<string, List<Tile>>();
         wallTileLookup = new Dictionary<Vector2, Tile>();
         wallTileParent = new GameObject("Walls").transform;
-        InitializeGrid();
-        GenerateLevel();
-        SpawnPlayer();
+        NewLevel();
     }
+
+    public void NewLevel() 
+        {
+            InitializeGrid();
+            GenerateLevel();
+            SpawnPlayer();
+        }
 
     private void InitializeGrid()
     {

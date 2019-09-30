@@ -2,17 +2,21 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Stairs : MonoBehaviour
+public class Stairs  : Item
+
 {
-    // Start is called before the first frame update
+    public Color stairColor;
     void Start()
     {
-        
+        GetComponent<SpriteRenderer>().color = stairColor;
     }
 
-    // Update is called once per frame
-    void Update()
+     new public void  SetAsTarget(bool isTarget)
     {
-        
+         LevelController.NewLevel(); //needs to be a static method
     }
 }
+
+
+
+
