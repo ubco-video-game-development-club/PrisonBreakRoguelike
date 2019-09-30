@@ -111,7 +111,7 @@ public class Room : MonoBehaviour
         do
             tile = GetTile(Random.Range(0, tiles.GetLength(0)), Random.Range(0, tiles.GetLength(1))); 
 
-        while(tile.occupant != null); //null reference
+        while(tile.occupant != null); 
 
         tile.occupant = Instantiate(stairs, tile.pos, Quaternion.identity);
     }
