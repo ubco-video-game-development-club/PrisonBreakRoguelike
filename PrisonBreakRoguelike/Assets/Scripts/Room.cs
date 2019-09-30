@@ -105,5 +105,15 @@ public class Room : MonoBehaviour
             }
         }   
     }
+    public void InitializeExit(GameObject stairs) 
+    {
+        Tile tile;
+        do
+            tile = GetTile(Random.Range(0, tiles.GetLength(0)), Random.Range(0, tiles.GetLength(1))); 
+
+        while(tile.occupant != null); 
+
+        tile.occupant = Instantiate(stairs, tile.pos, Quaternion.identity);
+    }
 }
 
