@@ -346,6 +346,7 @@ MonoBehaviour:
   enemyPrefabs:
   - {fileID: 4230772297360717752, guid: 97d0ef8ad611c2e4194aa4a28d57fb42, type: 3}
   - {fileID: 4230772297360717752, guid: 97d0ef8ad611c2e4194aa4a28d57fb42, type: 3}
+  stairs: {fileID: 1374721802017977336, guid: 548facf9da703134894b9768d0094f1a, type: 3}
   wallSprites:
   - {fileID: 0}
   - {fileID: 3282540719923212710, guid: d44e825f04b130a4f940147a725e8782, type: 3}
