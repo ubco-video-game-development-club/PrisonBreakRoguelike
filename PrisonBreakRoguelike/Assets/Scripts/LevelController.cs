@@ -23,6 +23,7 @@ public class LevelController : MonoBehaviour
     public GameObject[] itemPrefabs;
     public GameObject[] enemyPrefabs;
     [Tooltip("Wall tile sprites with index based on adjacent tiles: 1 = top, 2 = right, 4 = bottom, 8 = left.")]
+    public GameObject stairs;
     public Sprite[] wallSprites = new Sprite[16];
 
     private Room[,] rooms;
@@ -97,6 +98,7 @@ public class LevelController : MonoBehaviour
             }
             room.InitializeObjects(decoPrefabs, itemPrefabs, enemyPrefabs, decoChance, itemChance, enemyChance); 
         }
+        exit.InitializeExit(stairs); //Generate stairs in exit room
         Debug.Log("Done");
     }
 
