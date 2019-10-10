@@ -2,18 +2,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Stairs  : Item
-
+public class Stairs  : MonoBehaviour 
 {
-    public Color stairColor;
+    public Color color;    
     void Start()
     {
-        GetComponent<SpriteRenderer>().color = stairColor;
+        GetComponent<SpriteRenderer>().color = color;
     }
 
-     new public void  SetAsTarget(bool isTarget)
+    public void  SetAsTarget(bool isTarget)
     {
-         //LevelController.NewLevel(); //needs to be a static method
+         GetComponent<LevelController>().NewLevel(); //Untested
     }
 }
 

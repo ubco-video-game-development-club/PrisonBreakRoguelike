@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class LevelController : MonoBehaviour
 {
+    public static LevelController instance = null;
     public int width, height;
     public int roomSize = 16;
     public float tileScale = 1f;
