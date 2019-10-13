@@ -145,4 +145,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemType: 0
   idleColor: {r: 1, g: 0, b: 0.93007326, a: 1}
-  highlightColor: {r: 0, g: 1, b: 0.4595406, a: 1}
+  highlightColor: {r: 0.40993643, g: 0, b: 1, a: 1}

@@ -144,8 +144,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 78aedfb7886324740a1edb233b7f5a5f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 5
-  pickupDistance: 1
+  speed: 4
+  pickupDistance: 1.5
+  energyDrinkSpeed: 6
+  energyDrinkDuration: 5
+  energyDrinkCooldown: 10
+  stunGunDuration: 3
+  stunGunCooldown: 8
+  bombCooldown: 6
   currentRoom: {fileID: 0}
 --- !u!114 &194630610
 MonoBehaviour:
