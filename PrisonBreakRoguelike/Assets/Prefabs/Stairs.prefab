@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 125053655744760699}
   m_Layer: 0
   m_Name: Stairs
-  m_TagString: Respawn
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -143,3 +143,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c0bb8adfc59bfb74ea3ecae75c830a97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  color: {r: 0.89337254, g: 0.9245283, b: 0.06541473, a: 0}

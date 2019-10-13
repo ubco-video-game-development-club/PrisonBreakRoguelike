@@ -108,8 +108,8 @@ public class Room : MonoBehaviour
     public void InitializeExit(GameObject stairs) 
     {
         Tile tile;
-        do
-            tile = GetTile(Random.Range(0, tiles.GetLength(0)), Random.Range(0, tiles.GetLength(1))); 
+        do  
+            tile = GetTile(Random.Range(0, tiles.GetLength(0)), Random.Range(0, tiles.GetLength(1))); // Get a single, non occupied point randomly
 
         while(tile.occupant != null); 
 
