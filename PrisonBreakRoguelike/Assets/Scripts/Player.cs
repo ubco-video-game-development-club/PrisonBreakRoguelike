@@ -9,14 +9,20 @@ public class Player : MonoBehaviour
     [Header("Interaction")]
     public float pickupDistance = 1f;
     [Header("Energy Drink")]
-    public float energyDrinkSpeed = 1f;
-    public float energyDrinkDuration = 1f;
     public float energyDrinkCooldown = 1f;
+    public float energyDrinkDuration = 1f;
+    public float energyDrinkSpeed = 1f;
     [Header("Stun Gun")]
-    public float stunGunDuration = 1f;
     public float stunGunCooldown = 1f;
+    public float stunGunDuration = 1f;
+    public LayerMask stunGunLayer;
+    public float stunGunRange = 1f;
+    public string stunGunTargetTag = "Enemy";
     [Header("Bomb")]
     public float bombCooldown = 1f;
+    public LayerMask bombLayer;
+    public float bombRadius = 1f;
+    public string bombTargetTag = "Deco";
 
     [HideInInspector]
     public Room currentRoom;
@@ -154,7 +160,25 @@ public class Player : MonoBehaviour
         {
             stunGunCooldownTimer = stunGunCooldown;
             stunGunCount--;
-            // Raycast in mouse direction and call stun function on each enemy hit
+            
+            Vector2 mouseDirection = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            RaycastHit2D[] hits = Physics2D.RaycastAll(transform.position, mouseDirection, stunGunRange, stunGunLayer);
+            foreach (RaycastHit2D hit in hits)
+            {
+                GameObject target = hit.collider.gameObject;
+                if (target.CompareTag("Wall"))
+                {
+                    break;
+                }
+                if (target.CompareTag(stunGunTargetTag))
+                {
+                    Enemy enemy;
+                    if (target.TryGetComponent<Enemy>(out enemy))
+                    {
+                        enemy.Stun(stunGunDuration);
+                    }
+                }
+            }
         }
     }
 
@@ -168,7 +192,15 @@ public class Player : MonoBehaviour
         {
             bombCooldownTimer = bombCooldown;
             bombCount--;
-            // Get all items within radius, destroy them all
+
+            Collider2D[] targets = Physics2D.OverlapCircleAll(transform.position, bombRadius, bombLayer);
+            foreach (Collider2D target in targets)
+            {
+                if (target.CompareTag(bombTargetTag))
+                {
+                    Destroy(target);
+                }
+            }
         }
     }
 

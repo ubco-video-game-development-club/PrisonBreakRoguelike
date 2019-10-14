@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 684023325028986137}
   - component: {fileID: 9131571438211682547}
   - component: {fileID: 194630610}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Player
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -146,12 +146,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speed: 4
   pickupDistance: 1.5
-  energyDrinkSpeed: 6
-  energyDrinkDuration: 5
   energyDrinkCooldown: 10
-  stunGunDuration: 3
+  energyDrinkDuration: 5
+  energyDrinkSpeed: 6
   stunGunCooldown: 8
+  stunGunDuration: 3
+  stunGunLayer:
+    serializedVersion: 2
+    m_Bits: 512
+  stunGunRange: 1
+  stunGunTargetTag: Enemy
   bombCooldown: 6
+  bombLayer:
+    serializedVersion: 2
+    m_Bits: 512
+  bombRadius: 1
+  bombTargetTag: Deco
   currentRoom: {fileID: 0}
 --- !u!114 &194630610
 MonoBehaviour:
