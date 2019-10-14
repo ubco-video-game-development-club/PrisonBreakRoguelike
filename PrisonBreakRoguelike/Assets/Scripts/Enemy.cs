@@ -4,8 +4,16 @@ using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
-    Vector3 target;
-    Vector3 previousLocation;
+    private Vector3 target;
+    private Vector3 previousLocation;
+    private bool isStunned;
+    private float stunTimer = 0f;
+
+    public void Stun(float stunDuration)
+    {
+        isStunned = true;
+        stunTimer = stunDuration;
+    }
 
     void Start()
     {
@@ -13,8 +21,18 @@ public class Enemy : MonoBehaviour
         target = NewTargetLocation();
     }
 
+    void Update()
+    {
+        UpdateStunnedState();
+    }
+
     void FixedUpdate()
-    { 
+    {
+        if (isStunned)
+        {
+            return;
+        }
+
         Patrol();
     }
 
@@ -53,6 +71,15 @@ public class Enemy : MonoBehaviour
     private void OnCollisionEnter2D(Collision2D collision)
     {
         target = NewTargetLocation();
+    }
+
+    private void UpdateStunnedState()
+    {
+        stunTimer -= Time.deltaTime;
+        if (stunTimer <= 0)
+        {
+            isStunned = false;
+        }
     }
 }
 

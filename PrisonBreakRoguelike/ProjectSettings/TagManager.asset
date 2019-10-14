@@ -7,6 +7,8 @@ TagManager:
   - Enemy
   - Item
   - Room
+  - Deco
+  - Wall
   layers:
   - Default
   - TransparentFX
@@ -16,8 +18,8 @@ TagManager:
   - UI
   - 
   - 
-  - 
-  - 
+  - Background
+  - Main
   - 
   - 
   - 
