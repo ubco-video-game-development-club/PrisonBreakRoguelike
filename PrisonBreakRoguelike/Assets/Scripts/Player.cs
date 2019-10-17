@@ -91,13 +91,7 @@ public class Player : MonoBehaviour
             }
 
             return;
-
-        if (item.itemType = ItemType.STAIRS) // If closest item is stairs, automatically go to the next level
-        {
-            NextLevel();
-            return;
         }
-
         if (!item.Equals(currentItemTarget))
         {
             if (currentItemTarget != null)
@@ -111,7 +105,7 @@ public class Player : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.E))
         {
-            switch (item.ItemType)
+            switch (item.itemType)
             {
                 case ItemType.ENERGY_DRINK:
                 {
@@ -133,7 +127,7 @@ public class Player : MonoBehaviour
             currentItemTarget = null;
         }
     }
-    }
+    
 
     private void UpdateEnergyDrink()
     {
@@ -238,13 +232,8 @@ public class Player : MonoBehaviour
 
         return item;
     }
-
-    private void NextLevel() // Calls levelcontroller to gen new level
-    {
-        LevelController.NewLevel();     
-    }
-
-
-
-
 }
+
+
+
+
