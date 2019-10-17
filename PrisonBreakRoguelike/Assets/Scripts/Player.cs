@@ -92,7 +92,6 @@ public class Player : MonoBehaviour
 
             return;
         }
-
         if (!item.Equals(currentItemTarget))
         {
             if (currentItemTarget != null)
@@ -128,6 +127,7 @@ public class Player : MonoBehaviour
             currentItemTarget = null;
         }
     }
+    
 
     private void UpdateEnergyDrink()
     {
@@ -233,3 +233,7 @@ public class Player : MonoBehaviour
         return item;
     }
 }
+
+
+
+
