@@ -146,21 +146,24 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speed: 4
   pickupDistance: 1.5
+  energyDrinkDisplay: {fileID: 0}
   energyDrinkCooldown: 10
   energyDrinkDuration: 5
   energyDrinkSpeed: 6
+  stunGunDisplay: {fileID: 0}
   stunGunCooldown: 8
   stunGunDuration: 3
   stunGunLayer:
     serializedVersion: 2
     m_Bits: 512
-  stunGunRange: 1
+  stunGunRange: 10
   stunGunTargetTag: Enemy
+  bombDisplay: {fileID: 0}
   bombCooldown: 6
   bombLayer:
     serializedVersion: 2
     m_Bits: 512
-  bombRadius: 1
+  bombRadius: 5
   bombTargetTag: Deco
   currentRoom: {fileID: 0}
 --- !u!114 &194630610

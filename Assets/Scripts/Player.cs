@@ -9,16 +9,19 @@ public class Player : MonoBehaviour
     [Header("Interaction")]
     public float pickupDistance = 1f;
     [Header("Energy Drink")]
+    public ItemDisplay energyDrinkDisplay;
     public float energyDrinkCooldown = 1f;
     public float energyDrinkDuration = 1f;
     public float energyDrinkSpeed = 1f;
     [Header("Stun Gun")]
+    public ItemDisplay stunGunDisplay;
     public float stunGunCooldown = 1f;
     public float stunGunDuration = 1f;
     public LayerMask stunGunLayer;
     public float stunGunRange = 1f;
     public string stunGunTargetTag = "Enemy";
     [Header("Bomb")]
+    public ItemDisplay bombDisplay;
     public float bombCooldown = 1f;
     public LayerMask bombLayer;
     public float bombRadius = 1f;
@@ -148,6 +151,9 @@ public class Player : MonoBehaviour
             energyDrinkCount--;
             energyDrinkActive = true;
         }
+
+        float progress = energyDrinkCooldownTimer / energyDrinkCooldown;
+        energyDrinkDisplay.SetProgress(progress);
     }
 
     private void UpdateStunGun()
@@ -161,7 +167,8 @@ public class Player : MonoBehaviour
             stunGunCooldownTimer = stunGunCooldown;
             stunGunCount--;
             
-            Vector2 mouseDirection = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            Vector2 mouseDirection = mousePosition - (Vector2)transform.position;
             RaycastHit2D[] hits = Physics2D.RaycastAll(transform.position, mouseDirection, stunGunRange, stunGunLayer);
             foreach (RaycastHit2D hit in hits)
             {
@@ -180,6 +187,9 @@ public class Player : MonoBehaviour
                 }
             }
         }
+
+        float progress = stunGunCooldownTimer / stunGunCooldown;
+        stunGunDisplay.SetProgress(progress);
     }
 
     private void UpdateBomb()
@@ -198,10 +208,13 @@ public class Player : MonoBehaviour
             {
                 if (target.CompareTag(bombTargetTag))
                 {
-                    Destroy(target);
+                    Destroy(target.gameObject);
                 }
             }
         }
+
+        float progress = bombCooldownTimer / bombCooldown;
+        bombDisplay.SetProgress(progress);
     }
 
     private Item GetClosestItem()
