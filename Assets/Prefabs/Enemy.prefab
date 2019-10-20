@@ -143,3 +143,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7b24d26e8d6c742409655013622337fc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  visionDistance: 8
+  visionArcAngle: 0.4
+  hearingRadius: 5
+  attackSpeed: 4
+  patrolSpeed: 3
