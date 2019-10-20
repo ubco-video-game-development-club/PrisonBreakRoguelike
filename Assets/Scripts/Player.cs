@@ -1,9 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering.Universal;
 
 public class Player : MonoBehaviour
 {
+    [Header("Vision")]
+    public LayerMask visionLayer;
+    public int visionRayCount = 100;
+    public float visionRayDistance = 100f;
     [Header("Movement")]
     public float speed = 1f;
     [Header("Interaction")]
@@ -55,6 +60,19 @@ public class Player : MonoBehaviour
         {
             currentRoom = room;
         }
+    }
+
+    private void UpdateVision()
+    {
+        // Light2D light2D = GetComponent<Light2D>();
+        // light2D.shapePath = new Vector3[visionRayCount];
+        // const float PI = Mathf.PI;
+        // for (float angle = 0; angle < 2*PI; angle += 2*PI/visionRayCount)
+        // {
+        //     Vector2 dir = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
+        //     RaycastHit2D hit = Physics2D.Raycast(transform.position, dir, visionRayDistance, visionLayer);
+        //     light2D.shapePath
+        // }
     }
 
     private void UpdateMovement()
