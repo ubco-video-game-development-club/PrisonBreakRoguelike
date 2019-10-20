@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;  
 
-public class GameManager : MonoBehaviour
+public class GameManager : MonoBehaviour // Used to encapsulate SceneManager calls
 {
  
     public void GenLevel()

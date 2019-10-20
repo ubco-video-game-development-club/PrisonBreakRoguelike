@@ -4,11 +4,23 @@ using UnityEngine;
 
 public class Stairs : MonoBehaviour  // Stairs shares functionality w/ other items, but only one is generated per level
 {
-    public void  SetAsTarget(bool isTarget)
+    public GameManager gm;
+
+    void Awake()
     {
-         GetComponent<LevelController>().NewLevel(); //Untested
+        //gm = GameObject.Find("GameManager").GetComponent("GameManager.cs") as GameManager;
+    }
+    public void  OnTriggerEnter2D(Collider2D col)
+    {
+        if(col.tag == "Player")
+        {
+            Debug.Log("collided w/ player");
+            
+            gm.GenLevel();
+        }
     }
 }
+
 
 
 
