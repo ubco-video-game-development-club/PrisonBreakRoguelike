@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 4295503983747233292}
   - component: {fileID: 8853236869321035694}
   m_Layer: 9
-  m_Name: Item
+  m_Name: BaseItem
   m_TagString: Item
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -144,5 +144,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   itemType: 0
-  idleColor: {r: 0.96996236, g: 1, b: 0, a: 1}
-  highlightColor: {r: 0.40993643, g: 0, b: 1, a: 1}
+  idleColor: {r: 0, g: 1, b: 0.0060710907, a: 1}
+  highlightColor: {r: 1, g: 0.18053001, b: 0, a: 1}
