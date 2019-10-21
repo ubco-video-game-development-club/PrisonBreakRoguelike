@@ -34,7 +34,7 @@ public class LevelController : MonoBehaviour
 
     void Start()
     {
-        rooms = new Room[width, height];
+        rooms = new Room[width, height]; 
         walls = new Dictionary<string, List<Tile>>();
         wallTileLookup = new Dictionary<Vector2, Tile>();
         wallTileParent = new GameObject("Walls").transform;

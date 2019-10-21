@@ -5,7 +5,7 @@ using UnityEngine;
 public class Room : MonoBehaviour
 {
     [HideInInspector]
-    public int x, y;
+    public int x, y; 
     [HideInInspector]
     public bool visited = false;
 
