@@ -99,4 +99,26 @@ MonoBehaviour:
   isDoor: 0
   isWall: 0
   pos: {x: 0, y: 0, z: 0}
+  sprites:
+  - {fileID: -657184601136422320, guid: 29af5ff47191d73449b209aabdb148f6, type: 3}
+  - {fileID: 2040372132977131867, guid: 29af5ff47191d73449b209aabdb148f6, type: 3}
+  - {fileID: -4166097776838399288, guid: 29af5ff47191d73449b209aabdb148f6, type: 3}
+  - {fileID: -7025652427051960046, guid: 29af5ff47191d73449b209aabdb148f6, type: 3}
+  - {fileID: 6905831066398402554, guid: 29af5ff47191d73449b209aabdb148f6, type: 3}
+  - {fileID: 1726061256476602623, guid: 29af5ff47191d73449b209aabdb148f6, type: 3}
+  - {fileID: -7260310062464109513, guid: 29af5ff47191d73449b209aabdb148f6, type: 3}
+  - {fileID: -6631909920601613697, guid: 29af5ff47191d73449b209aabdb148f6, type: 3}
+  - {fileID: -8081505355173112674, guid: 29af5ff47191d73449b209aabdb148f6, type: 3}
+  - {fileID: 5688402823894778135, guid: 29af5ff47191d73449b209aabdb148f6, type: 3}
+  weights:
+  - 0.5
+  - 0.45
+  - 0.4
+  - 0.35
+  - 0.3
+  - 0.15
+  - 0.1
+  - 0.05
+  - 0.025
+  - 0.01
   occupant: {fileID: 0}

@@ -6,10 +6,6 @@ public class Stairs : MonoBehaviour  // Stairs shares functionality w/ other ite
 {
     public GameManager gm;
 
-    void Awake()
-    {
-        //gm = GameObject.Find("GameManager").GetComponent("GameManager.cs") as GameManager;
-    }
     public void  OnTriggerEnter2D(Collider2D col)
     {
         if(col.tag == "Player")

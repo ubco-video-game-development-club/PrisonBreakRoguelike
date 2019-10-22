@@ -5,7 +5,7 @@ using UnityEngine;
 public class Room : MonoBehaviour
 {
     [HideInInspector]
-    public int x, y;
+    public int x, y; 
     [HideInInspector]
     public bool visited = false;
 
@@ -57,6 +57,7 @@ public class Room : MonoBehaviour
                 pos += transform.position;
                 Tile tile = Instantiate(tilePrefab, pos, Quaternion.identity, transform) as Tile;
                 tile.name = "Tile[" + i + ", " + j + "]";
+                tile.GetComponent<SpriteRenderer>().sprite = tile.ChooseSprite();
                 tile.GetComponent<SpriteRenderer>().color = tileColor;
                 tile.x = i;
                 tile.y = j;

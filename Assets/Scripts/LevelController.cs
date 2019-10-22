@@ -27,6 +27,8 @@ public class LevelController : MonoBehaviour
     public GameObject stairs;
     public Sprite[] wallSprites = new Sprite[16];
 
+    public Sprite doorSprite;
+
     private Room[,] rooms;
     private Dictionary<string, List<Tile>> walls;
     private Dictionary<Vector2, Tile> wallTileLookup;
@@ -34,7 +36,7 @@ public class LevelController : MonoBehaviour
 
     void Start()
     {
-        rooms = new Room[width, height];
+        rooms = new Room[width, height]; 
         walls = new Dictionary<string, List<Tile>>();
         wallTileLookup = new Dictionary<Vector2, Tile>();
         wallTileParent = new GameObject("Walls").transform;
@@ -82,7 +84,7 @@ public class LevelController : MonoBehaviour
         Room exit = GetRandomRoom(validExits);
         List<Room> exitPath = GeneratePath(exit.x, exit.y, spawnX, spawnY);
         List<Room> generatedRooms = GenerateBranches(exitPath);
-        GenerateBoundaryWall();
+        GenerateBoundaryWall(); 
         AssignWallSprites();
         foreach (Room room in generatedRooms)
         {
@@ -332,7 +334,7 @@ public class LevelController : MonoBehaviour
         {
             wallTileLookup.Remove(tile.transform.position);
             tile.GetComponent<BoxCollider2D>().isTrigger = true;
-            tile.GetComponent<SpriteRenderer>().color = Color.white;
+            tile.GetComponent<SpriteRenderer>().sprite = doorSprite;
         }
     }
 
