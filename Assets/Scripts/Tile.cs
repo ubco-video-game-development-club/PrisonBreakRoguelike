@@ -9,6 +9,8 @@ public class Tile : MonoBehaviour
     public bool isDoor;
     public bool isWall;
     public Vector3 pos;
+
+    private SpriteRenderer sr;
     
 
         
@@ -23,30 +25,28 @@ public class Tile : MonoBehaviour
     /// </summary>
 
     public GameObject occupant;  
-    
-    void Awake()
-    {
-        GetComponent<SpriteRenderer>().sprite = ChooseSprite();        
-    }
 
-    private Sprite ChooseSprite()
+  
+    public Sprite ChooseSprite()
     {
         float rand = Random.Range(0f, Sum(weights));
 
         float last = 0f;
 
+        float next = 0f;
+
         for (int i = 0; i < sprites.Length; i++)
         {
-            if(InRange(rand, last, weights[i]))
+            next += weights[i];
+
+            if(InRange(rand, last, next))
                 return sprites[i];
             
             else
                 last += weights[i]; 
         }
         Debug.Log("Error: Cannot choose a sprite");
-        return null;
-
-      
+        return sprites[0];
     }
     private bool InRange(float num, float bot, float top) // checks if num is in range [bot, top), helper method for ChooseSprite()
     {
