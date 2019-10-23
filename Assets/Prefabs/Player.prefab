@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 5103665303785340724}
   - component: {fileID: 684023325028986137}
   - component: {fileID: 9131571438211682547}
-  - component: {fileID: 194630610}
+  - component: {fileID: 953410075}
   m_Layer: 9
   m_Name: Player
   m_TagString: Player
@@ -144,6 +144,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 78aedfb7886324740a1edb233b7f5a5f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  visionLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  visionRayCount: 100
+  visionRayDistance: 100
   speed: 4
   pickupDistance: 1.5
   energyDrinkDisplay: {fileID: 0}
@@ -166,7 +171,7 @@ MonoBehaviour:
   bombRadius: 5
   bombTargetTag: Deco
   currentRoom: {fileID: 0}
---- !u!114 &194630610
+--- !u!114 &953410075
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -191,7 +196,7 @@ MonoBehaviour:
   m_AlphaBlendOnOverlap: 0
   m_PointLightInnerAngle: 360
   m_PointLightOuterAngle: 360
-  m_PointLightInnerRadius: 3
+  m_PointLightInnerRadius: 5
   m_PointLightOuterRadius: 8
   m_PointLightDistance: 3
   m_PointLightQuality: 1

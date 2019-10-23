@@ -148,4 +148,6 @@ MonoBehaviour:
   isDoor: 0
   isWall: 0
   pos: {x: 0, y: 0, z: 0}
+  sprites: []
+  weights: []
   occupant: {fileID: 0}
