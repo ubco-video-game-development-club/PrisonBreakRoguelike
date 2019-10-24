@@ -13,11 +13,6 @@ public class Tile : MonoBehaviour
     private SpriteRenderer sr;
     
 
-        
-    public Sprite[] sprites; 
-
-    public float[] weights; // Values must be entered in the same order as the sprites they will corrispond to
-
     [HideInInspector]
 
     /// <summary>
@@ -27,7 +22,7 @@ public class Tile : MonoBehaviour
     public GameObject occupant;  
 
   
-    public Sprite ChooseSprite()
+    public Sprite ChooseSprite(Sprite[] sprites,float[] weights)
     {
         float rand = Random.Range(0f, Sum(weights));
 

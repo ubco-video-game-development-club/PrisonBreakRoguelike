@@ -46,7 +46,7 @@ public class Room : MonoBehaviour
         return items;
     }
 
-    public void InitializeTiles(Tile tilePrefab, int roomSize, float tileScale, Color tileColor)
+    public void InitializeTiles(Tile tilePrefab, int roomSize, float tileScale, Color tileColor, Sprite[] sprites,float[] weights )
     {
         tiles = new Tile[roomSize, roomSize];
         for (int i = 0; i < roomSize; i++)
@@ -57,7 +57,7 @@ public class Room : MonoBehaviour
                 pos += transform.position;
                 Tile tile = Instantiate(tilePrefab, pos, Quaternion.identity, transform) as Tile;
                 tile.name = "Tile[" + i + ", " + j + "]";
-                tile.GetComponent<SpriteRenderer>().sprite = tile.ChooseSprite();
+                tile.GetComponent<SpriteRenderer>().sprite = tile.ChooseSprite(sprites , weights);
                 tile.GetComponent<SpriteRenderer>().color = tileColor;
                 tile.x = i;
                 tile.y = j;
