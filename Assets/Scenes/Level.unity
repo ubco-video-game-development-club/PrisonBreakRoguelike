@@ -98,7 +98,7 @@ LightmapSettings:
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
   m_LightingDataAsset: {fileID: 0}
-  m_UseShadowmask: 0
+  m_UseShadowmask: 1
 --- !u!196 &4
 NavMeshSettings:
   serializedVersion: 2
@@ -507,6 +507,28 @@ MonoBehaviour:
   - {fileID: -1819741813952534947, guid: d44e825f04b130a4f940147a725e8782, type: 3}
   - {fileID: -5666112366125880409, guid: d44e825f04b130a4f940147a725e8782, type: 3}
   - {fileID: -1488151570027504278, guid: d44e825f04b130a4f940147a725e8782, type: 3}
+  floorSprites:
+  - {fileID: -657184601136422320, guid: 29af5ff47191d73449b209aabdb148f6, type: 3}
+  - {fileID: 2040372132977131867, guid: 29af5ff47191d73449b209aabdb148f6, type: 3}
+  - {fileID: -4166097776838399288, guid: 29af5ff47191d73449b209aabdb148f6, type: 3}
+  - {fileID: -7025652427051960046, guid: 29af5ff47191d73449b209aabdb148f6, type: 3}
+  - {fileID: 6905831066398402554, guid: 29af5ff47191d73449b209aabdb148f6, type: 3}
+  - {fileID: 1726061256476602623, guid: 29af5ff47191d73449b209aabdb148f6, type: 3}
+  - {fileID: -7260310062464109513, guid: 29af5ff47191d73449b209aabdb148f6, type: 3}
+  - {fileID: -6631909920601613697, guid: 29af5ff47191d73449b209aabdb148f6, type: 3}
+  - {fileID: -8081505355173112674, guid: 29af5ff47191d73449b209aabdb148f6, type: 3}
+  - {fileID: 5688402823894778135, guid: 29af5ff47191d73449b209aabdb148f6, type: 3}
+  floorWeights:
+  - 0.5
+  - 0.45
+  - 0.4
+  - 0.35
+  - 0.3
+  - 0.25
+  - 0.2
+  - 0.1
+  - 0.05
+  - 0.01
   doorSprite: {fileID: -657184601136422320, guid: 29af5ff47191d73449b209aabdb148f6,
     type: 3}
 --- !u!4 &1588575893

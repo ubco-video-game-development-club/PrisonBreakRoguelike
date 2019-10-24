@@ -27,6 +27,10 @@ public class LevelController : MonoBehaviour
     public GameObject stairs;
     public Sprite[] wallSprites = new Sprite[16];
 
+     public Sprite[] floorSprites; 
+
+    public float[] floorWeights; // Values must be entered in the same order as the sprites they will corrispond to
+
     public Sprite doorSprite;
 
     private Room[,] rooms;
@@ -90,19 +94,19 @@ public class LevelController : MonoBehaviour
         {
             if (room.x == spawnX && room.y == spawnY)
             {
-                room.InitializeTiles(tilePrefab, roomSize, tileScale, Color.blue);
+                room.InitializeTiles(tilePrefab, roomSize, tileScale, Color.blue, floorSprites, floorWeights);
             }
             else if (room.x == exit.x && room.y == exit.y)
             {
-                room.InitializeTiles(tilePrefab, roomSize, tileScale, Color.red);
+                room.InitializeTiles(tilePrefab, roomSize, tileScale, Color.red, floorSprites, floorWeights);
             }
             else if (exitPath.Contains(room))
             {
-                room.InitializeTiles(tilePrefab, roomSize, tileScale, Color.white);
+                room.InitializeTiles(tilePrefab, roomSize, tileScale, Color.white, floorSprites, floorWeights);
             }
             else
             {
-                room.InitializeTiles(tilePrefab, roomSize, tileScale, Color.white);
+                room.InitializeTiles(tilePrefab, roomSize, tileScale, Color.white, floorSprites, floorWeights);
             }
             room.InitializeObjects(decoPrefabs, itemPrefabs, enemyPrefabs, decoChance, itemChance, enemyChance); 
         }
