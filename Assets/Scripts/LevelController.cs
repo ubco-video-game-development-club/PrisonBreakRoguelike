@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering.Universal;
 
 public class LevelController : MonoBehaviour
 {
@@ -339,6 +340,8 @@ public class LevelController : MonoBehaviour
             wallTileLookup.Remove(tile.transform.position);
             tile.GetComponent<BoxCollider2D>().isTrigger = true;
             tile.GetComponent<SpriteRenderer>().sprite = doorSprite;
+            tile.GetComponent<SpriteRenderer>().sortingLayerID = SortingLayer.NameToID("Background");
+            Destroy(tile.GetComponent<ShadowCaster2D>());
         }
     }
 
