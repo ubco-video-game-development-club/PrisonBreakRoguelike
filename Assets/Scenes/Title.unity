@@ -379,7 +379,11 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: A game by the UBCO Video Game Dev. Club
+  m_Text: 'A game by the UBCO Video Game Dev. Club
+
+
+    WASD/Arrow keys to move,
+    ESC to pause'
 --- !u!222 &1244280595
 CanvasRenderer:
   m_ObjectHideFlags: 0
