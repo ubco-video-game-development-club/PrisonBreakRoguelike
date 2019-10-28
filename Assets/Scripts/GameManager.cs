@@ -51,7 +51,7 @@ public class GameManager : MonoBehaviour // Used to encapsulate SceneManager cal
             GUI.Box(new Rect(pauseX, pauseY, pauseWidth, pauseHeight), "Paused");
             
             //Button to unpause
-            if (GUI.Button(new Rect(pauseX + pauseMargin , pauseHeight/2 + buttonHeight, buttonWidth, buttonHeight),"Continue"))
+            if (GUI.Button(new Rect(pauseX + pauseMargin , pauseHeight/2 - buttonHeight, buttonWidth, buttonHeight),"Continue"))
             {
                 isPaused = !isPaused;
                 TogglePause();

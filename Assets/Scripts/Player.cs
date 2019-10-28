@@ -44,6 +44,13 @@ public class Player : MonoBehaviour
     private int bombCount;
     private float bombCooldownTimer;
 
+    Animator animator;
+
+    void Start()
+    {
+        animator = GetComponent<Animator>();
+    }
+
     void Update()
     {
         UpdateMovement();
@@ -94,7 +101,11 @@ public class Player : MonoBehaviour
         {
             dy--;
         }
-        Vector2 vel = new Vector2(dx, dy);
+    
+        bool isMoving = (dy != 0 || dx != 0); 
+        animator.SetBool("IsMoving", isMoving);
+
+        Vector3 vel = new Vector3(dx, dy, 0);
         vel.Normalize();
         vel *= energyDrinkActive ? energyDrinkSpeed : speed;
         transform.position += new Vector3(vel.x, vel.y, 0f) * Time.deltaTime;
