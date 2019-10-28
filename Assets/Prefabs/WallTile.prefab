@@ -149,8 +149,6 @@ MonoBehaviour:
   isDoor: 0
   isWall: 0
   pos: {x: 0, y: 0, z: 0}
-  sprites: []
-  weights: []
   occupant: {fileID: 0}
 --- !u!114 &2158214698993614751
 MonoBehaviour:
@@ -166,15 +164,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_ShadowGroup: 0
   m_HasRenderer: 1
-  m_UseRendererSilhouette: 1
+  m_UseRendererSilhouette: 0
   m_CastsShadows: 1
-  m_SelfShadows: 0
-  m_ApplyToSortingLayers: bf7afecb
+  m_SelfShadows: 1
+  m_ApplyToSortingLayers: 00000000bf7afecbb9bf5317
   m_ShapePath:
-  - {x: -0.5, y: -0.5, z: 0}
+  - {x: -0.5, y: -0.49262702, z: 0}
   - {x: 0.5, y: -0.5, z: 0}
   - {x: 0.5, y: 0.5, z: 0}
   - {x: -0.5, y: 0.5, z: 0}
-  m_ShapePathHash: 0
+  m_ShapePathHash: -388790651
   m_Mesh: {fileID: 0}
-  m_InstanceId: -19394
+  m_InstanceId: -644378
