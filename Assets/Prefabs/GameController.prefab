@@ -43,3 +43,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 41f54a3d028035c4d96f6238e0b8f4c5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  pauseWidth: 300
+  pauseHeight: 500
+  pauseMargin: 100
+  buttonWidth: 100
+  buttonHeight: 50
