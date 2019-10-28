@@ -20,15 +20,15 @@ public class LevelController : MonoBehaviour
     public Room roomPrefab;
     public Tile tilePrefab;
     public Tile wallTilePrefab;
+    public GameObject stairsPrefab;
     public float decoChance, itemChance, enemyChance; //enemyChance + itemChance + decoChance + emptyChance = 100% 
     public GameObject[] decoPrefabs;
     public GameObject[] itemPrefabs;
     public GameObject[] enemyPrefabs;
     [Tooltip("Wall tile sprites with index based on adjacent tiles: 1 = top, 2 = right, 4 = bottom, 8 = left.")]
-    public GameObject stairs;
     public Sprite[] wallSprites = new Sprite[16];
 
-     public Sprite[] floorSprites; 
+    public Sprite[] floorSprites;
 
     public float[] floorWeights; // Values must be entered in the same order as the sprites they will corrispond to
 
@@ -111,7 +111,7 @@ public class LevelController : MonoBehaviour
             }
             room.InitializeObjects(decoPrefabs, itemPrefabs, enemyPrefabs, decoChance, itemChance, enemyChance); 
         }
-        exit.InitializeExit(stairs); //Generate stairs in exit room
+        exit.InitializeExit(stairsPrefab); //Generate stairs in exit room
         Debug.Log("Done");
     }
 
