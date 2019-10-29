@@ -23,7 +23,7 @@ public class GameManager : MonoBehaviour // Used to encapsulate SceneManager cal
 
 
     public void GenLevel()
-    {
+    { 
         SceneManager.LoadSceneAsync("Level");
         isPaused = false;
     }
@@ -51,14 +51,14 @@ public class GameManager : MonoBehaviour // Used to encapsulate SceneManager cal
             GUI.Box(new Rect(pauseX, pauseY, pauseWidth, pauseHeight), "Paused");
             
             //Button to unpause
-            if (GUI.Button(new Rect(pauseX + pauseMargin , pauseHeight/2 - buttonHeight, buttonWidth, buttonHeight),"Continue"))
+            if (GUI.Button(new Rect(pauseX + pauseMargin , pauseHeight/2 + buttonHeight * 2, buttonWidth, buttonHeight),"Continue"))
             {
                 isPaused = !isPaused;
                 TogglePause();
             }
 
             //Button to quit to main menu
-            if (GUI.Button(new Rect(pauseX + pauseMargin , pauseHeight/2 + buttonHeight * 2, buttonWidth, buttonHeight),"Main Menu"))
+            if (GUI.Button(new Rect(pauseX + pauseMargin , pauseHeight/2 + buttonHeight * 5, buttonWidth, buttonHeight),"Main Menu"))
             {
                 SceneManager.LoadSceneAsync("Title");
             }    

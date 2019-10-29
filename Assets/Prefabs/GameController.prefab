@@ -44,7 +44,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pauseWidth: 300
-  pauseHeight: 500
+  pauseHeight: 300
   pauseMargin: 100
   buttonWidth: 100
   buttonHeight: 50
