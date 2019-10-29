@@ -102,9 +102,12 @@ public class Player : MonoBehaviour
             dy--;
         }
     
-        bool isMoving = (dy != 0 || dx != 0); 
+        bool isMoving = (dy != 0 || dx != 0);
+         
         animator.SetBool("IsMoving", isMoving);
-
+        animator.SetFloat("X_Vel", dx);
+        animator.SetFloat("Y_Vel", dy);
+    
         Vector3 vel = new Vector3(dx, dy, 0);
         vel.Normalize();
         vel *= energyDrinkActive ? energyDrinkSpeed : speed;
