@@ -29,7 +29,7 @@ public class TileBasedMovement : MonoBehaviour
         if (!init)
         {
             currentRoom = GameObject.Find("Room").GetComponent<Room>();
-            currentTile = currentRoom.GetTile(0, 0);
+            currentTile = currentRoom.TileAt(0, 0);
             transform.position = currentTile.transform.position;
             init = true;
         }
@@ -40,7 +40,7 @@ public class TileBasedMovement : MonoBehaviour
         if (inputX != 0 || inputY != 0)
         {
             Vector2 dir = GetDirectionFromInput(inputX, inputY);
-            Tile newTarget = currentRoom.GetTile(currentTile.x + (int)dir.x, currentTile.y + (int)dir.y);
+            Tile newTarget = currentRoom.TileAt(currentTile.x + (int)dir.x, currentTile.y + (int)dir.y);
             if (newTarget != null && newTarget != targetTile)
             {
                 startPos = transform.position;

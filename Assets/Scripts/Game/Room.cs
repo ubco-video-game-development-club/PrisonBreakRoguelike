@@ -11,7 +11,19 @@ public class Room : MonoBehaviour
 
     private Tile[,] tiles;
 
-    public Tile GetTile(int x, int y)
+    public Vector2Int ToGridPosition(Vector2 worldPosition)
+    {
+        // Offset to local space
+        Vector2 temp = worldPosition - (Vector2)transform.position;
+
+        // Scale for tile size
+        temp /= LevelController.instance.tileScale;
+
+        // Round to int
+        return new Vector2Int(Mathf.RoundToInt(temp.x), Mathf.RoundToInt(temp.y));
+    }
+
+    public Tile TileAt(int x, int y)
     {
         if (x < 0 || x >= tiles.GetLength(0) ||
             y < 0 || y >= tiles.GetLength(1))
@@ -20,6 +32,19 @@ public class Room : MonoBehaviour
         }
 
         return tiles[x, y];
+    }
+
+    public Dictionary<Vector2, Tile> GetTileLookup()
+    {
+        Dictionary<Vector2, Tile> result = new Dictionary<Vector2, Tile>();
+        for (int i = 0; i < tiles.GetLength(0); i++)
+        {
+            for (int j = 0; j < tiles.GetLength(1); j++)
+            {
+                result.Add(tiles[i, j].transform.position, tiles[i, j]);
+            }
+        }
+        return result;
     }
 
     public List<Item> GetItems()
@@ -110,7 +135,7 @@ public class Room : MonoBehaviour
     {
         Tile tile;
         do  
-            tile = GetTile(Random.Range(0, tiles.GetLength(0)), Random.Range(0, tiles.GetLength(1))); // Get a single, non occupied point randomly
+            tile = TileAt(Random.Range(0, tiles.GetLength(0)), Random.Range(0, tiles.GetLength(1))); // Get a single, non occupied point randomly
 
         while(tile.occupant != null); 
 

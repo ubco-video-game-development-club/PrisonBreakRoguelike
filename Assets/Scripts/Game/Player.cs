@@ -32,8 +32,7 @@ public class Player : MonoBehaviour
     public float bombRadius = 1f;
     public string bombTargetTag = "Deco";
 
-    [HideInInspector]
-    public Room currentRoom;
+    private Room currentRoom;
     private Item currentItemTarget;
     private int energyDrinkCount;
     private float energyDrinkDurationTimer;
@@ -43,6 +42,23 @@ public class Player : MonoBehaviour
     private float stunGunCooldownTimer;
     private int bombCount;
     private float bombCooldownTimer;
+
+    public Tile GetCurrentTile()
+    {
+        Vector2Int gridPos = currentRoom.ToGridPosition(transform.position);
+        return currentRoom.TileAt(gridPos.x, gridPos.y);
+    }
+
+    public Room GetCurrentRoom()
+    {
+        return currentRoom;
+    }
+
+    public void Spawn(Room spawn, Vector2 spawnPos)
+    {
+        transform.position = spawnPos;
+        currentRoom = spawn;
+    }
 
     void Update()
     {

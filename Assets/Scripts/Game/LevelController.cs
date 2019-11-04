@@ -6,6 +6,7 @@ using UnityEngine.Experimental.Rendering.Universal;
 public class LevelController : MonoBehaviour
 {
     public static LevelController instance = null;
+
     public int width, height;
     public int roomSize = 16;
     public float tileScale = 1f;
@@ -41,6 +42,12 @@ public class LevelController : MonoBehaviour
 
     void Start()
     {
+        if (instance != null)
+        {
+            Destroy(gameObject);
+        }
+        instance = this;
+
         rooms = new Room[width, height]; 
         walls = new Dictionary<string, List<Tile>>();
         wallTileLookup = new Dictionary<Vector2, Tile>();
@@ -49,11 +56,94 @@ public class LevelController : MonoBehaviour
     }
 
     public void NewLevel() 
+    {
+        InitializeGrid();
+        GenerateLevel();
+        SpawnPlayer();
+    }
+
+    public Room RoomAt(Vector3 position)
+    {
+        Room room = null;
+        RaycastHit hit;
+        Vector3 startPos = position + Vector3.forward;
+        Vector3 endPos = position + Vector3.back;
+        if (Physics.Linecast(startPos, endPos, out hit, LayerMask.NameToLayer("Background")))
         {
-            InitializeGrid();
-            GenerateLevel();
-            SpawnPlayer();
+            if (hit.transform.CompareTag("Room"))
+            {
+                room = hit.transform.GetComponent<Room>();
+            }
         }
+        return room;
+    }
+
+    public Tile WallTileAt(Vector2 position)
+    {
+        return wallTileLookup[position];
+    }
+
+    public List<Room> GetAdjacentRooms(Room room)
+    {
+        return GetAdjacentRooms(room.x, room.y);
+    }
+
+    public List<Room> GetAdjacentRooms(int x, int y)
+    {
+        List<Room> result = new List<Room>();
+        if (!IsRoomBlocked(x+1, y))
+        {
+            result.Add(rooms[x+1, y]);
+        }
+        if (!IsRoomBlocked(x-1, y))
+        {
+            result.Add(rooms[x-1, y]);
+        }
+        if (!IsRoomBlocked(x, y+1))
+        {
+            result.Add(rooms[x, y+1]);
+        }
+        if (!IsRoomBlocked(x, y-1))
+        {
+            result.Add(rooms[x, y-1]);
+        }
+        return result;
+    }
+
+    public bool IsRoomBlocked(int x, int y)
+    {
+        return IsOutOfBounds(x, y) || IsRoomBlocked(rooms[x, y]);
+    }
+
+    public bool IsRoomBlocked(Room room)
+    {
+        return room == null || room.visited == true;
+    }
+
+    public bool IsOutOfBounds(int x, int y)
+    {
+        return (
+            x < 0 || x >= rooms.GetLength(0) ||
+            y < 0 || y >= rooms.GetLength(1)
+        );
+    }
+
+    public static int TileDistance(int x1, int y1, int x2, int y2)
+    {
+        return Mathf.Abs(x1 - x2) + Mathf.Abs(y1 - y2);
+    }
+
+    public Room GetRandomRoom(List<Room> rooms)
+    {
+        int rand = Random.Range(0, rooms.Count);
+        return rooms[rand];
+    }
+
+    public Tile GetRandomTile(List<Tile> tiles)
+    {
+        int rand = Random.Range(0, tiles.Count);
+        return tiles[rand];
+    }
 
     private void InitializeGrid()
     {
@@ -121,8 +211,7 @@ public class LevelController : MonoBehaviour
         Vector3 roomPos = spawn.transform.position;
         Vector3 offset = new Vector2(roomSize * tileScale / 2, roomSize * tileScale / 2);
         Player player = GameObject.FindGameObjectWithTag("Player").GetComponent<Player>();
-        player.transform.position = roomPos + offset;
-        player.currentRoom = spawn;
+        player.Spawn(spawn, roomPos + offset);
     }
 
     private List<Room> GeneratePath(int startX, int startY, int endX, int endY)
@@ -401,72 +490,5 @@ public class LevelController : MonoBehaviour
     {
         string key = room1.ToString() + room2.ToString();
         return walls.ContainsKey(key) ? walls[key] : null;
-    }
-
-    private List<Room> GetAdjacentRooms(Room room)
-    {
-        return GetAdjacentRooms(room.x, room.y);
-    }
-
-    private List<Room> GetAdjacentRooms(int x, int y)
-    {
-        List<Room> result = new List<Room>();
-        if (!IsRoomBlocked(x+1, y))
-        {
-            result.Add(rooms[x+1, y]);
-        }
-        if (!IsRoomBlocked(x-1, y))
-        {
-            result.Add(rooms[x-1, y]);
-        }
-        if (!IsRoomBlocked(x, y+1))
-        {
-            result.Add(rooms[x, y+1]);
-        }
-        if (!IsRoomBlocked(x, y-1))
-        {
-            result.Add(rooms[x, y-1]);
-        }
-        return result;
-    }
-
-    private bool IsRoomBlocked(int x, int y)
-    {
-        return IsOutOfBounds(x, y) || IsRoomBlocked(rooms[x, y]);
-    }
-
-    private bool IsRoomBlocked(Room room)
-    {
-        return room == null || room.visited == true;
-    }
-
-    private bool IsOutOfBounds(int x, int y)
-    {
-        return (
-            x < 0 || x >= rooms.GetLength(0) ||
-            y < 0 || y >= rooms.GetLength(1)
-        );
-    }
-
-    private int TileDistance(int x1, int y1, int x2, int y2)
-    {
-        return Mathf.Abs(x1 - x2) + Mathf.Abs(y1 - y2);
-    }
-
-    private Room GetRandomRoom(List<Room> rooms)
-    {
-        int rand = Random.Range(0, rooms.Count);
-        return rooms[rand];
-    }
-
-    private Tile GetRandomTile(List<Tile> tiles)
-    {
-        int rand = Random.Range(0, tiles.Count);
-        return tiles[rand];
-    }
-
-    void Update()
-    {
-        
     }
 }
