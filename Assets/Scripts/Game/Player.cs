@@ -42,6 +42,7 @@ public class Player : MonoBehaviour
     private float stunGunCooldownTimer;
     private int bombCount;
     private float bombCooldownTimer;
+    private Animator animator;
 
     public Tile GetCurrentTile()
     {
@@ -58,6 +59,11 @@ public class Player : MonoBehaviour
     {
         transform.position = spawnPos;
         currentRoom = spawn;
+    }
+
+    void Start()
+    {
+        animator = GetComponent<Animator>();
     }
 
     void Update()
@@ -110,7 +116,14 @@ public class Player : MonoBehaviour
         {
             dy--;
         }
-        Vector2 vel = new Vector2(dx, dy);
+    
+        bool isMoving = (dy != 0 || dx != 0);
+         
+        animator.SetBool("IsMoving", isMoving);
+        animator.SetFloat("X_Vel", dx);
+        animator.SetFloat("Y_Vel", dy);
+    
+        Vector3 vel = new Vector3(dx, dy, 0);
         vel.Normalize();
         vel *= energyDrinkActive ? energyDrinkSpeed : speed;
         transform.position += new Vector3(vel.x, vel.y, 0f) * Time.deltaTime;

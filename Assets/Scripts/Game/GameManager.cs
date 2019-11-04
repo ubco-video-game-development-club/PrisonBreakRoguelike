@@ -5,13 +5,16 @@ using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour // Used to encapsulate SceneManager calls
 {
+    public float pauseWidth, pauseHeight;
+    
+    public float pauseMargin;
+    public float buttonWidth, buttonHeight;
     private bool isPaused;
-
-    void Update()
+    void Update() 
     {
         TogglePause();
 
-        if(Input.GetKeyDown(KeyCode.Escape)) 
+        if(Input.GetKeyDown(KeyCode.Escape) && SceneManager.GetActiveScene().name == "Level") //Game will only pause during gameplay
         {
             isPaused = !isPaused;
         }
@@ -20,12 +23,12 @@ public class GameManager : MonoBehaviour // Used to encapsulate SceneManager cal
 
 
     public void GenLevel()
-    {
-        SceneManager.LoadSceneAsync("level");
+    { 
+        SceneManager.LoadSceneAsync("Level");
         isPaused = false;
     }
     
-    public void TogglePause()
+    public void TogglePause() 
     {
         if(isPaused)
         {
@@ -38,14 +41,28 @@ public class GameManager : MonoBehaviour // Used to encapsulate SceneManager cal
     }
 
     public void OnGUI() //Draw pause buttons
-    {
-        if(isPaused)
+    {  
+        float pauseX = Screen.width / 2 - pauseWidth / 2;
+        float pauseY = Screen.height / 2 - pauseHeight / 2;
+        
+        if(isPaused) //Subject to change in accordance to design agreed on by dev. and art teams
         {
-            if (GUI.Button(new Rect(10, 10, 150, 100), "Continue"))
+            //Pause menu box 
+            GUI.Box(new Rect(pauseX, pauseY, pauseWidth, pauseHeight), "Paused");
+            
+            //Button to unpause
+            if (GUI.Button(new Rect(pauseX + pauseMargin , pauseHeight/2 + buttonHeight * 2, buttonWidth, buttonHeight),"Continue"))
             {
                 isPaused = !isPaused;
                 TogglePause();
             }
+
+            //Button to quit to main menu
+            if (GUI.Button(new Rect(pauseX + pauseMargin , pauseHeight/2 + buttonHeight * 5, buttonWidth, buttonHeight),"Main Menu"))
+            {
+                SceneManager.LoadSceneAsync("Title");
+            }    
+
         }
     }
         
