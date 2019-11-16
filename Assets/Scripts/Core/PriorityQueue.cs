@@ -80,6 +80,11 @@ public class PriorityQueue<K, V> where V : IComparable<V>
         return result;
     }
 
+    public int Length()
+    {
+        return data.Count;
+    }
+
     public override String ToString()
     {
         return data.ToString();

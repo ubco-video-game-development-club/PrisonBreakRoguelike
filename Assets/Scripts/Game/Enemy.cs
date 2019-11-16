@@ -24,6 +24,9 @@ public class Enemy : MonoBehaviour
     private Player player;
     private Vector2 currentDirection;
     private Room currentRoom;
+    private Dictionary<Vector2, Tile> tileMap;
+    private Dictionary<Tile, Tile> pathMap;
+    private PriorityQueue<Tile, float> tileQueue;
 
     public void Stun(float stunDuration)
     {
@@ -169,68 +172,64 @@ public class Enemy : MonoBehaviour
         }
     }
 
-    private List<Tile> GetPathToTile(Tile target)
+    private List<Tile> GetPathToTarget(Vector2 target)
+    {
+        // A dictionary of all searchable tiles by position
+        tileMap = GetTileMap();
+        // A dictionary of visited tiles. Each tile stores
+        // the previous step taken to get to it so that we
+        // can get the path back to our initial position.
+        pathMap = new Dictionary<Tile, Tile>();
+        // A priority queue which prioritizes checking tiles 
+        // that are closer to the target
+        tileQueue = new PriorityQueue<Tile, float>();
+
+        // Start from the current tile the enemy is on
+        Tile currentTile = GetCurrentTile();
+        pathMap.Add(currentTile, null);
+        while (tileQueue.Length() > 0)
+        {
+            // Check if we've reached the target
+            Vector2 currentPos = currentTile.transform.position;
+            if (currentPos == target)
+            {
+                List<Tile> result = new List<Tile>();
+                // Get the path from the target
+                while (pathMap[currentTile] != null)
+                {
+                    result.Add(currentTile);
+                    currentTile = pathMap[currentTile];
+                }
+                // We want the path TO the target
+                result.Reverse();
+                return result;
+            }
+
+            // Add all the adjacent tiles to the queue
+            QueueAdjacentTile(currentTile, target, Vector2.left);
+            QueueAdjacentTile(currentTile, target, Vector2.right);
+            QueueAdjacentTile(currentTile, target, Vector2.up);
+            QueueAdjacentTile(currentTile, target, Vector2.down);
+
+            // Move to the next tile in the queue
+            currentTile = tileQueue.Remove();
+        }
+
+        return null;
+    }
+
+    private void QueueAdjacentTile(Tile currentTile, Vector2 targetPos, Vector2 direction)
     {
         float tileScale = LevelController.instance.tileScale;
-
-        // TODO: add a dictionary of tiles with <tile, parent> for visited tiles?
-        // Remove the visited dictionary and use the above instead?
-        // Loop through the queue until found or failed
-        // Make a helper method to add adjacent to queue by direction: QueueAdjacentTile(Vector2 direction)
-        // With that helper method, make the tileMap, queue and new visited dict private member variables
-
-        // Get the map of available tiles
-        Dictionary<Vector2, Tile> tileMap = GetTileMap();
-        Dictionary<Vector2, bool> visited = new Dictionary<Vector2, bool>();
-
-        // Create a queue of tiles to check in order based on distance to target
-        PriorityQueue<Tile, float> queue = new PriorityQueue<Tile, float>();
-
-        // Get the current tile position
-        Tile startTile = GetCurrentTile();
-        float startDist = Vector2.Distance(startTile.transform.position, target.transform.position);
-        queue.Add(startTile, startDist);
-
-        Tile currentTile = queue.Remove();
-        visited[currentTile.transform.position] = true;
-
-        // Add the adjacent tiles of the current position to the queue
-        Vector2 leftPos = (Vector2)currentTile.transform.position + (Vector2.left * tileScale);
-        float leftDist = Vector2.Distance(leftPos, target.transform.position);
-        Tile leftTile = tileMap[leftPos] ?? LevelController.instance.WallTileAt(leftPos);
-        if (leftTile != null && !visited[leftPos])
+        direction.Normalize();
+        Vector2 adjPos = (Vector2)currentTile.transform.position + (direction * tileScale);
+        float adjDist = Vector2.Distance(adjPos, targetPos);
+        Tile adjTile = tileMap[adjPos] ?? LevelController.instance.WallTileAt(adjPos);
+        if (adjTile != null && pathMap[adjTile] == null)
         {
-            queue.Add(leftTile, leftDist);
+            pathMap.Add(adjTile, currentTile);
+            tileQueue.Add(adjTile, adjDist);
         }
-        
-        Vector2 rightPos = (Vector2)currentTile.transform.position + (Vector2.right * tileScale);
-        float rightDist = Vector2.Distance(rightPos, target.transform.position);
-        Tile rightTile = tileMap[rightPos] ?? LevelController.instance.WallTileAt(rightPos);
-        if (rightTile != null && !visited[rightPos])
-        {
-            queue.Add(rightTile, rightDist);
-        }
-        
-        Vector2 topPos = (Vector2)currentTile.transform.position + (Vector2.up * tileScale);
-        float topDist = Vector2.Distance(topPos, target.transform.position);
-        Tile topTile = tileMap[topPos] ?? LevelController.instance.WallTileAt(topPos);
-        if (topTile != null && !visited[topPos])
-        {
-            queue.Add(topTile, topDist);
-        }
-        
-        Vector2 bottomPos = (Vector2)currentTile.transform.position + (Vector2.down * tileScale);
-        float bottomDist = Vector2.Distance(bottomPos, target.transform.position);
-        Tile bottomTile = tileMap[bottomPos] ?? LevelController.instance.WallTileAt(bottomPos);
-        if (bottomTile != null && !visited[bottomPos])
-        {
-            queue.Add(bottomTile, bottomDist);
-        }
-
-        // After checking the next tile, add its adjacent tiles to the queue
-
-        // Once we reach the target, backtrack to get the path
-        return null;
     }
 
     private Dictionary<Vector2, Tile> GetTileMap()
