@@ -8,6 +8,8 @@ public class Room : MonoBehaviour
     public int x, y; 
     [HideInInspector]
     public bool visited = false;
+    [HideInInspector]
+    public bool initialized = false;
 
     private Tile[,] tiles;
 
@@ -37,6 +39,10 @@ public class Room : MonoBehaviour
     public Dictionary<Vector2, Tile> GetTileLookup()
     {
         Dictionary<Vector2, Tile> result = new Dictionary<Vector2, Tile>();
+        if (tiles == null)
+        {
+            Debug.Log("bruh wut");
+        }
         for (int i = 0; i < tiles.GetLength(0); i++)
         {
             for (int j = 0; j < tiles.GetLength(1); j++)
@@ -95,6 +101,7 @@ public class Room : MonoBehaviour
         float roomScale = roomSize * tileScale;
         bc2d.offset = new Vector2(roomScale / 2, roomScale / 2);
         bc2d.size = new Vector2(roomScale, roomScale);
+        initialized = true;
     }
 
     public void InitializeObjects(GameObject[] decoPrefabs, GameObject[] itemPrefabs, GameObject[] enemyPrefabs, float decoChance, float itemChance, float enemyChance) 

@@ -38,6 +38,7 @@ public class LevelController : MonoBehaviour
     private Room[,] rooms;
     private Dictionary<string, List<Tile>> walls;
     private Dictionary<Vector2, Tile> wallTileLookup;
+    private Dictionary<Vector2, Tile> doorTileLookup;
     private Transform wallTileParent;
 
     void Start()
@@ -51,6 +52,7 @@ public class LevelController : MonoBehaviour
         rooms = new Room[width, height]; 
         walls = new Dictionary<string, List<Tile>>();
         wallTileLookup = new Dictionary<Vector2, Tile>();
+        doorTileLookup = new Dictionary<Vector2, Tile>();
         wallTileParent = new GameObject("Walls").transform;
         NewLevel();
     }
@@ -62,20 +64,24 @@ public class LevelController : MonoBehaviour
         SpawnPlayer();
     }
 
-    public Room RoomAt(Vector3 position)
+    public Room GetNearestRoom(Vector3 position)
     {
-        Room room = null;
-        RaycastHit hit;
-        Vector3 startPos = position + Vector3.forward;
-        Vector3 endPos = position + Vector3.back;
-        if (Physics.Linecast(startPos, endPos, out hit, LayerMask.NameToLayer("Background")))
+        Room nearestRoom = null;
+        float nearestDist = Mathf.Infinity;
+        for (int i = 0; i < rooms.GetLength(0); i++)
         {
-            if (hit.transform.CompareTag("Room"))
+            for (int j = 0; j < rooms.GetLength(1); j++)
             {
-                room = hit.transform.GetComponent<Room>();
+                Room room = rooms[i, j];
+                float dist = Vector3.Distance(position, room.transform.position);
+                if (dist < nearestDist)
+                {
+                    nearestRoom = room;
+                    nearestDist = dist;
+                }
             }
         }
-        return room;
+        return nearestRoom;
     }
 
     public Tile WallTileAt(Vector2 position)
@@ -83,49 +89,99 @@ public class LevelController : MonoBehaviour
         return wallTileLookup[position];
     }
 
-    public List<Room> GetAdjacentRooms(Room room)
+    public Tile DoorTileAt(Vector2 position)
     {
-        return GetAdjacentRooms(room.x, room.y);
+        return doorTileLookup[position];
     }
 
-    public List<Room> GetAdjacentRooms(int x, int y)
+    public List<Room> GetAdjacentInitializedRooms(int x, int y)
     {
+        // List<Room> result = GetAdjacentRooms(x, y);
+        // for (int i = 0; i < result.Count; i++)
+        // {
+        //     if (!result[i].initialized)
+        //     {
+        //         result.RemoveAt(i);
+        //     }
+        // }
+        // return result;
         List<Room> result = new List<Room>();
-        if (!IsRoomBlocked(x+1, y))
+        if (IsRoomValid(x+1, y) && rooms[x+1, y].initialized)
         {
             result.Add(rooms[x+1, y]);
         }
-        if (!IsRoomBlocked(x-1, y))
+        if (IsRoomValid(x-1, y) && rooms[x-1, y].initialized)
         {
             result.Add(rooms[x-1, y]);
         }
-        if (!IsRoomBlocked(x, y+1))
+        if (IsRoomValid(x, y+1) && rooms[x, y+1].initialized)
         {
             result.Add(rooms[x, y+1]);
         }
-        if (!IsRoomBlocked(x, y-1))
+        if (IsRoomValid(x, y-1) && rooms[x, y-1].initialized)
+        {
+            result.Add(rooms[x, y-1]);
+        }
+        return result;
+
+    }
+
+    public List<Room> GetAdjacentUnvisitedRooms(int x, int y)
+    {
+        // List<Room> result = GetAdjacentRooms(x, y);
+        // for (int i = 0; i < result.Count; i++)
+        // {
+        //     if (result[i].visited)
+        //     {
+        //         result.RemoveAt(i);
+        //     }
+        // }
+        // return result;
+        List<Room> result = new List<Room>();
+        if (IsRoomValid(x+1, y) && !rooms[x+1, y].visited)
+        {
+            result.Add(rooms[x+1, y]);
+        }
+        if (IsRoomValid(x-1, y) && !rooms[x-1, y].visited)
+        {
+            result.Add(rooms[x-1, y]);
+        }
+        if (IsRoomValid(x, y+1) && !rooms[x, y+1].visited)
+        {
+            result.Add(rooms[x, y+1]);
+        }
+        if (IsRoomValid(x, y-1) && !rooms[x, y-1].visited)
         {
             result.Add(rooms[x, y-1]);
         }
         return result;
     }
 
-    public bool IsRoomBlocked(int x, int y)
+    public List<Room> GetAdjacentRooms(int x, int y)
     {
-        return IsOutOfBounds(x, y) || IsRoomBlocked(rooms[x, y]);
+        List<Room> result = new List<Room>();
+        if (IsRoomValid(x+1, y))
+        {
+            result.Add(rooms[x+1, y]);
+        }
+        if (IsRoomValid(x-1, y))
+        {
+            result.Add(rooms[x-1, y]);
+        }
+        if (IsRoomValid(x, y+1))
+        {
+            result.Add(rooms[x, y+1]);
+        }
+        if (IsRoomValid(x, y-1))
+        {
+            result.Add(rooms[x, y-1]);
+        }
+        return result;
     }
 
-    public bool IsRoomBlocked(Room room)
+    public bool IsRoomValid(int x, int y)
     {
-        return room == null || room.visited == true;
-    }
-
-    public bool IsOutOfBounds(int x, int y)
-    {
-        return (
-            x < 0 || x >= rooms.GetLength(0) ||
-            y < 0 || y >= rooms.GetLength(1)
-        );
+        return !IsRoomOutOfBounds(x, y) && !IsRoomNull(x, y);
     }
 
     public static int TileDistance(int x1, int y1, int x2, int y2)
@@ -238,7 +294,7 @@ public class LevelController : MonoBehaviour
 
     private List<Room> GeneratePath(List<Room> path, int x, int y, int endX, int endY)
     {
-        List<Room> adjacentRooms = GetAdjacentRooms(x, y);
+        List<Room> adjacentRooms = GetAdjacentUnvisitedRooms(x, y);
 
         if (adjacentRooms.Count == 0)
         {
@@ -266,7 +322,7 @@ public class LevelController : MonoBehaviour
             room.visited = true;
 
             // Generate walls
-            List<Room> adjacentRooms = GetAdjacentRooms(room.x, room.y);
+            List<Room> adjacentRooms = GetAdjacentUnvisitedRooms(room.x, room.y);
             foreach (Room adj in adjacentRooms)
             {
                 List<Tile> wall = GetWall(room, adj);
@@ -307,7 +363,7 @@ public class LevelController : MonoBehaviour
             // chance to not branch at all from this room
             bool skipBranching = Random.Range(0, 1.0f) < skipProbability;
 
-            List<Room> adjacentRooms = GetAdjacentRooms(room.x, room.y);
+            List<Room> adjacentRooms = GetAdjacentUnvisitedRooms(room.x, room.y);
             foreach (Room adj in adjacentRooms)
             {
                 List<Tile> wall = GetWall(room, adj);
@@ -427,6 +483,7 @@ public class LevelController : MonoBehaviour
         foreach (Tile tile in chosenTiles)
         {
             wallTileLookup.Remove(tile.transform.position);
+            doorTileLookup.Add(tile.transform.position, tile);
             tile.GetComponent<BoxCollider2D>().isTrigger = true;
             tile.GetComponent<SpriteRenderer>().sprite = doorSprite;
             tile.GetComponent<SpriteRenderer>().sortingLayerID = SortingLayer.NameToID("Background");
@@ -471,6 +528,19 @@ public class LevelController : MonoBehaviour
         }
     }
 
+    private bool IsRoomNull(int x, int y)
+    {
+        return rooms[x, y] == null;
+    }
+
+    private bool IsRoomOutOfBounds(int x, int y)
+    {
+        return (
+            x < 0 || x >= rooms.GetLength(0) ||
+            y < 0 || y >= rooms.GetLength(1)
+        );
+    }
+
     // Creates a wall tile at the given position or returns 
     // the wall tile that currently exists at that position
     private Tile CreateWallTile(Vector2 pos)
@@ -481,6 +551,7 @@ public class LevelController : MonoBehaviour
         }
         Tile wallTile = Instantiate(wallTilePrefab, pos, Quaternion.identity, wallTileParent);
         wallTile.name = "WallTile[" + pos.x + ", " + pos.y + "]";
+        wallTile.isWall = true;
         wallTileLookup.Add(pos, wallTile);
         return wallTile;
     }

@@ -9,19 +9,15 @@ public class Tile : MonoBehaviour
     public bool isDoor;
     public bool isWall;
     public Vector3 pos;
-
-    private SpriteRenderer sr;
     
-
-    [HideInInspector]
-
     /// <summary>
     /// The GameObject that is occupying this Tile.
     /// </summary>
+    [HideInInspector]
+    public GameObject occupant;
 
-    public GameObject occupant;  
+    private SpriteRenderer sr;
 
-  
     public Sprite ChooseSprite(Sprite[] sprites,float[] weights)
     {
         float rand = Random.Range(0f, Sum(weights));
@@ -43,6 +39,12 @@ public class Tile : MonoBehaviour
         Debug.Log("Error: Cannot choose a sprite");
         return sprites[0];
     }
+
+    public bool IsOccupied()
+    {
+        return occupant != null;
+    }
+
     private bool InRange(float num, float bot, float top) // checks if num is in range [bot, top), helper method for ChooseSprite()
     {
         return (num >= bot && num < top);

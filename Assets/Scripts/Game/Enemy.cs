@@ -16,6 +16,7 @@ public class Enemy : MonoBehaviour
     public float attackSpeed = 1f;
     public float patrolSpeed = 1f;
 
+    private Vector2 targetPos;
     private Vector3 target;
     private Vector3 previousLocation;
     private bool isStunned = false;
@@ -24,6 +25,7 @@ public class Enemy : MonoBehaviour
     private Player player;
     private Vector2 currentDirection;
     private Room currentRoom;
+    private List<Tile> movePath;
     private Dictionary<Vector2, Tile> tileMap;
     private Dictionary<Tile, Tile> pathMap;
     private PriorityQueue<Tile, float> tileQueue;
@@ -40,11 +42,17 @@ public class Enemy : MonoBehaviour
         return currentRoom.TileAt(gridPos.x, gridPos.y);
     }
 
+    public Room GetCurrentRoom()
+    {
+        return currentRoom;
+    }
+
     void Start()
     {
         state = EnemyState.Patrol;
         //pick location to move to upon spawn
         target = NewTargetLocation();
+        currentRoom = LevelController.instance.GetNearestRoom(transform.position);
     }
 
     void Update()
@@ -72,7 +80,7 @@ public class Enemy : MonoBehaviour
     }
     
     void OnTriggerEnter2D(Collider2D collider)
-    {   
+    {
         Room room;
         if (collider.TryGetComponent<Room>(out room))
         {
@@ -135,12 +143,33 @@ public class Enemy : MonoBehaviour
 
     private void Attack()
     {
-        currentDirection = player.transform.position - transform.position;
-        currentDirection.Normalize();
+        Vector2 playerPos = player.transform.position;
+        if (movePath == null)
+        {
+            movePath = GetPathToTarget(playerPos);
+            if (movePath == null)
+            {
+                state = EnemyState.Patrol;
+                return;
+            }
+        }
+        else
+        {
+            Vector2 endPos = movePath[movePath.Count - 1].transform.position;
+            if (Vector2.Distance(playerPos, endPos) > 1)
+            {
+                movePath = GetPathToTarget(playerPos);
+            }
+        }
+
+        Vector2 nextPos = movePath[0].transform.position;
+        if (Vector2.Distance(transform.position, nextPos) < Mathf.Epsilon)
+        {
+            movePath.RemoveAt(0);
+        }
 
         float speed = attackSpeed * Time.deltaTime;
-
-        transform.position = Vector2.MoveTowards(transform.position, player.transform.position, speed);
+        transform.position = Vector2.MoveTowards(transform.position, nextPos, speed);
     }
 
     private Vector3 NewTargetLocation()
@@ -224,21 +253,29 @@ public class Enemy : MonoBehaviour
         direction.Normalize();
         Vector2 adjPos = (Vector2)currentTile.transform.position + (direction * tileScale);
         float adjDist = Vector2.Distance(adjPos, targetPos);
-        Tile adjTile = tileMap[adjPos] ?? LevelController.instance.WallTileAt(adjPos);
-        if (adjTile != null && pathMap[adjTile] == null)
+        Tile adjTile = tileMap[adjPos] ?? LevelController.instance.DoorTileAt(adjPos);
+        if (CanMoveTo(adjTile))
         {
             pathMap.Add(adjTile, currentTile);
             tileQueue.Add(adjTile, adjDist);
         }
     }
 
+    private bool CanMoveTo(Tile tile)
+    {
+        return (
+            tile != null &&
+            pathMap[tile] == null &&
+            !tile.IsOccupied()
+        );
+    }
+
     private Dictionary<Vector2, Tile> GetTileMap()
     {
         Dictionary<Vector2, Tile> tileMap = new Dictionary<Vector2, Tile>();
         List<Room> adjacentRooms = new List<Room>();
-        Room currentRoom = LevelController.instance.RoomAt(transform.position);
         adjacentRooms.Add(currentRoom);
-        adjacentRooms.AddRange(LevelController.instance.GetAdjacentRooms(currentRoom));
+        adjacentRooms.AddRange(LevelController.instance.GetAdjacentInitializedRooms(currentRoom.x, currentRoom.y));
         foreach (Room room in adjacentRooms)
         {
             foreach (KeyValuePair<Vector2, Tile> tileLookup in room.GetTileLookup())
