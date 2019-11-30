@@ -73,7 +73,7 @@ public class LevelController : MonoBehaviour
             for (int j = 0; j < rooms.GetLength(1); j++)
             {
                 Room room = rooms[i, j];
-                float dist = Vector3.Distance(position, room.transform.position);
+                float dist = DistanceToRoom(position, room);
                 if (dist < nearestDist)
                 {
                     nearestRoom = room;
@@ -84,6 +84,21 @@ public class LevelController : MonoBehaviour
         return nearestRoom;
     }
 
+    public float DistanceToRoom(Vector2 position, Room room)
+    {
+        Vector2 roomCenterPos = room.transform.position;
+        roomCenterPos += Vector2.one * (roomSize / 2.0f);
+        float dist = Vector3.Distance(position, roomCenterPos);
+        return dist;
+    }
+
+    public static Vector2 RoundToTilePosition(Vector2 worldPosition)
+    {
+        float tileX = Mathf.Floor(worldPosition.x) + 0.5f;
+        float tileY = Mathf.Floor(worldPosition.y) + 0.5f;
+        return new Vector2(tileX, tileY);
+    }
+
     public Tile WallTileAt(Vector2 position)
     {
         return wallTileLookup[position];
@@ -91,7 +106,7 @@ public class LevelController : MonoBehaviour
 
     public Tile DoorTileAt(Vector2 position)
     {
-        return doorTileLookup[position];
+        return doorTileLookup.ContainsKey(position) ? doorTileLookup[position] : null;
     }
 
     public List<Room> GetAdjacentInitializedRooms(int x, int y)

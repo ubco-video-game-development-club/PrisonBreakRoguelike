@@ -47,7 +47,8 @@ public class Player : MonoBehaviour
     public Tile GetCurrentTile()
     {
         Vector2Int gridPos = currentRoom.ToGridPosition(transform.position);
-        return currentRoom.TileAt(gridPos.x, gridPos.y);
+        Vector2 tilePos = LevelController.RoundToTilePosition(transform.position);
+        return currentRoom.TileAt(gridPos.x, gridPos.y) ?? LevelController.instance.DoorTileAt(tilePos);
     }
 
     public Room GetCurrentRoom()
@@ -81,6 +82,7 @@ public class Player : MonoBehaviour
         if (collider.TryGetComponent<Room>(out room))
         {
             currentRoom = room;
+            Debug.Log("New room is: " + currentRoom.name);
         }
     }
 

@@ -22,7 +22,7 @@ public class Room : MonoBehaviour
         temp /= LevelController.instance.tileScale;
 
         // Round to int
-        return new Vector2Int(Mathf.RoundToInt(temp.x), Mathf.RoundToInt(temp.y));
+        return new Vector2Int(Mathf.FloorToInt(temp.x), Mathf.FloorToInt(temp.y));
     }
 
     public Tile TileAt(int x, int y)
@@ -134,6 +134,7 @@ public class Room : MonoBehaviour
                 {
                     int randIndex = Random.Range(0, objects.Length); 
                     tile.occupant = Instantiate(objects[randIndex], tile.pos, Quaternion.identity);
+                    tile.GetComponent<SpriteRenderer>().color = Color.red;
                 }
             }
         }   

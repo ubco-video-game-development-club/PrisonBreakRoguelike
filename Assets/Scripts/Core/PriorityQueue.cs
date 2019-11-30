@@ -50,14 +50,33 @@ public class PriorityQueue<K, V> where V : IComparable<V>
         // Set the first element to the last element
         int last = data.Count - 1;
         data[0] = data[last];
+        data.RemoveAt(last);
+        last--;
 
         int parent = 0;
         while (parent < last)
         {
             // Get the index of the smaller child
+            int child = 0;
             int left = (parent * 2) + 1;
-            int right = (parent * 2) + 2;
-            int child = left < right ? left : right;
+            if (left > last)
+            {
+                // If there's no children we can stop
+                break;
+            }
+            else if (left == last)
+            {
+                // If there's only one child use that
+                child = left;
+            }
+            else
+            {
+                // If there's two children get the smaller
+                int right = (parent * 2) + 2;
+                V lValue = data[left].value;
+                V rValue = data[right].value;
+                child = lValue.CompareTo(rValue) <= 0 ? left : right;
+            }
 
             // If the parent's value is less than the child's value,
             // everything is as it should be and we can stop

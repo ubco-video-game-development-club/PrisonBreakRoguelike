@@ -39,7 +39,8 @@ public class Enemy : MonoBehaviour
     public Tile GetCurrentTile()
     {
         Vector2Int gridPos = currentRoom.ToGridPosition(transform.position);
-        return currentRoom.TileAt(gridPos.x, gridPos.y);
+        Vector2 tilePos = LevelController.RoundToTilePosition(transform.position);
+        return currentRoom.TileAt(gridPos.x, gridPos.y) ?? LevelController.instance.DoorTileAt(tilePos);
     }
 
     public Room GetCurrentRoom()
@@ -143,11 +144,11 @@ public class Enemy : MonoBehaviour
 
     private void Attack()
     {
-        Vector2 playerPos = player.transform.position;
-        if (movePath == null)
+        Tile playerTile = player.GetCurrentTile();
+        if (movePath == null || movePath.Count == 0)
         {
-            movePath = GetPathToTarget(playerPos);
-            if (movePath == null)
+            movePath = GetPathToTarget(playerTile);
+            if (movePath == null || movePath.Count == 0)
             {
                 state = EnemyState.Patrol;
                 return;
@@ -155,10 +156,11 @@ public class Enemy : MonoBehaviour
         }
         else
         {
+            Vector2 playerPos = playerTile.transform.position;
             Vector2 endPos = movePath[movePath.Count - 1].transform.position;
             if (Vector2.Distance(playerPos, endPos) > 1)
             {
-                movePath = GetPathToTarget(playerPos);
+                movePath = GetPathToTarget(playerTile);
             }
         }
 
@@ -201,7 +203,7 @@ public class Enemy : MonoBehaviour
         }
     }
 
-    private List<Tile> GetPathToTarget(Vector2 target)
+    private List<Tile> GetPathToTarget(Tile target)
     {
         // A dictionary of all searchable tiles by position
         tileMap = GetTileMap();
@@ -216,11 +218,12 @@ public class Enemy : MonoBehaviour
         // Start from the current tile the enemy is on
         Tile currentTile = GetCurrentTile();
         pathMap.Add(currentTile, null);
-        while (tileQueue.Length() > 0)
+        do
         {
             // Check if we've reached the target
             Vector2 currentPos = currentTile.transform.position;
-            if (currentPos == target)
+            Vector2 targetPos = target.transform.position;
+            if (currentPos == targetPos)
             {
                 List<Tile> result = new List<Tile>();
                 // Get the path from the target
@@ -231,18 +234,23 @@ public class Enemy : MonoBehaviour
                 }
                 // We want the path TO the target
                 result.Reverse();
+                if (result.Count == 0)
+                {
+                    Debug.Log("that's a count of 0");
+                }
                 return result;
             }
 
             // Add all the adjacent tiles to the queue
-            QueueAdjacentTile(currentTile, target, Vector2.left);
-            QueueAdjacentTile(currentTile, target, Vector2.right);
-            QueueAdjacentTile(currentTile, target, Vector2.up);
-            QueueAdjacentTile(currentTile, target, Vector2.down);
+            QueueAdjacentTile(currentTile, targetPos, Vector2.left);
+            QueueAdjacentTile(currentTile, targetPos, Vector2.right);
+            QueueAdjacentTile(currentTile, targetPos, Vector2.up);
+            QueueAdjacentTile(currentTile, targetPos, Vector2.down);
 
             // Move to the next tile in the queue
             currentTile = tileQueue.Remove();
         }
+        while (tileQueue.Length() > 0);
 
         return null;
     }
@@ -253,7 +261,7 @@ public class Enemy : MonoBehaviour
         direction.Normalize();
         Vector2 adjPos = (Vector2)currentTile.transform.position + (direction * tileScale);
         float adjDist = Vector2.Distance(adjPos, targetPos);
-        Tile adjTile = tileMap[adjPos] ?? LevelController.instance.DoorTileAt(adjPos);
+        Tile adjTile = tileMap.ContainsKey(adjPos) ? tileMap[adjPos] : LevelController.instance.DoorTileAt(adjPos);
         if (CanMoveTo(adjTile))
         {
             pathMap.Add(adjTile, currentTile);
@@ -265,7 +273,7 @@ public class Enemy : MonoBehaviour
     {
         return (
             tile != null &&
-            pathMap[tile] == null &&
+            !pathMap.ContainsKey(tile) &&
             !tile.IsOccupied()
         );
     }
