@@ -18,6 +18,23 @@ public class Tile : MonoBehaviour
 
     private SpriteRenderer sr;
 
+    void Start()
+    {
+        sr = GetComponent<SpriteRenderer>();
+    }
+
+    void Update()
+    {
+        if (IsOccupied())
+        {
+            sr.color = Color.red;
+        }
+        else
+        {
+            sr.color = Color.white;
+        }
+    }
+
     public Sprite ChooseSprite(Sprite[] sprites,float[] weights)
     {
         float rand = Random.Range(0f, Sum(weights));

@@ -16,7 +16,7 @@ public class Enemy : MonoBehaviour
     public float attackSpeed = 1f;
     public float patrolSpeed = 1f;
 
-    private Vector2 targetPos;
+    private Vector2 tempPos;
     private Vector3 target;
     private Vector3 previousLocation;
     private bool isStunned = false;
@@ -25,6 +25,7 @@ public class Enemy : MonoBehaviour
     private Player player;
     private Vector2 currentDirection;
     private Room currentRoom;
+    private Tile currentTile;
     private List<Tile> movePath;
     private Dictionary<Vector2, Tile> tileMap;
     private Dictionary<Tile, Tile> pathMap;
@@ -54,11 +55,13 @@ public class Enemy : MonoBehaviour
         //pick location to move to upon spawn
         target = NewTargetLocation();
         currentRoom = LevelController.instance.GetNearestRoom(transform.position);
+        currentTile = GetCurrentTile();
     }
 
     void Update()
     {
         UpdateStunnedState();
+        UpdateTileState();
     }
 
     void FixedUpdate()
@@ -86,6 +89,15 @@ public class Enemy : MonoBehaviour
         if (collider.TryGetComponent<Room>(out room))
         {
             currentRoom = room;
+        }
+    }
+
+    void OnDrawGizmos()
+    {
+        if (state == EnemyState.Attack)
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawLine(transform.position, tempPos);
         }
     }
 
@@ -165,13 +177,14 @@ public class Enemy : MonoBehaviour
         }
 
         Vector2 nextPos = movePath[0].transform.position;
+        tempPos = nextPos;
+        float speed = attackSpeed * Time.deltaTime;
+        transform.position = Vector2.MoveTowards(transform.position, nextPos, speed);
+        
         if (Vector2.Distance(transform.position, nextPos) < Mathf.Epsilon)
         {
             movePath.RemoveAt(0);
         }
-
-        float speed = attackSpeed * Time.deltaTime;
-        transform.position = Vector2.MoveTowards(transform.position, nextPos, speed);
     }
 
     private Vector3 NewTargetLocation()
@@ -200,6 +213,22 @@ public class Enemy : MonoBehaviour
         if (stunTimer <= 0)
         {
             isStunned = false;
+        }
+    }
+
+    private void UpdateTileState()
+    {
+        Tile updatedCurrentTile = GetCurrentTile();
+        if (updatedCurrentTile == null || currentTile == null)
+        {
+            return;
+        }
+
+        if (updatedCurrentTile != currentTile)
+        {
+            currentTile.occupant = null;
+            updatedCurrentTile.occupant = gameObject;
+            currentTile = updatedCurrentTile;
         }
     }
 

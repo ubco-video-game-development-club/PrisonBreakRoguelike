@@ -132,9 +132,15 @@ public class Room : MonoBehaviour
                 
                 if (objects != null)
                 {
-                    int randIndex = Random.Range(0, objects.Length); 
-                    tile.occupant = Instantiate(objects[randIndex], tile.pos, Quaternion.identity);
-                    tile.GetComponent<SpriteRenderer>().color = Color.red;
+                    int randIndex = Random.Range(0, objects.Length);
+                    GameObject obj = objects[randIndex];
+                    tile.occupant = Instantiate(obj, tile.pos, Quaternion.identity);
+
+                    Item item;
+                    if (obj.TryGetComponent<Item>(out item))
+                    {
+                        item.SetOccupiedTile(tile);
+                    }
                 }
             }
         }   

@@ -175,6 +175,7 @@ public class Player : MonoBehaviour
                     break;
                 }
             }
+            item.ClearOccupiedTile();
             Destroy(item.gameObject);
             currentItemTarget = null;
         }
