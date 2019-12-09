@@ -32,8 +32,7 @@ public class Player : MonoBehaviour
     public float bombRadius = 1f;
     public string bombTargetTag = "Deco";
 
-    [HideInInspector]
-    public Room currentRoom;
+    private Room currentRoom;
     private Item currentItemTarget;
     private int energyDrinkCount;
     private float energyDrinkDurationTimer;
@@ -43,8 +42,25 @@ public class Player : MonoBehaviour
     private float stunGunCooldownTimer;
     private int bombCount;
     private float bombCooldownTimer;
+    private Animator animator;
 
-    Animator animator;
+    public Tile GetCurrentTile()
+    {
+        Vector2Int gridPos = currentRoom.ToGridPosition(transform.position);
+        Vector2 tilePos = LevelController.RoundToTilePosition(transform.position);
+        return currentRoom.TileAt(gridPos.x, gridPos.y) ?? LevelController.instance.DoorTileAt(tilePos);
+    }
+
+    public Room GetCurrentRoom()
+    {
+        return currentRoom;
+    }
+
+    public void Spawn(Room spawn, Vector2 spawnPos)
+    {
+        transform.position = spawnPos;
+        currentRoom = spawn;
+    }
 
     void Start()
     {
@@ -66,6 +82,7 @@ public class Player : MonoBehaviour
         if (collider.TryGetComponent<Room>(out room))
         {
             currentRoom = room;
+            Debug.Log("New room is: " + currentRoom.name);
         }
     }
 
@@ -158,6 +175,7 @@ public class Player : MonoBehaviour
                     break;
                 }
             }
+            item.ClearOccupiedTile();
             Destroy(item.gameObject);
             currentItemTarget = null;
         }

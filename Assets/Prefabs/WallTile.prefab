@@ -147,7 +147,7 @@ MonoBehaviour:
   x: 0
   y: 0
   isDoor: 0
-  isWall: 0
+  isWall: 1
   pos: {x: 0, y: 0, z: 0}
   occupant: {fileID: 0}
 --- !u!114 &2158214698993614751
@@ -175,4 +175,4 @@ MonoBehaviour:
   - {x: -0.5, y: 0.5, z: 0}
   m_ShapePathHash: -388790651
   m_Mesh: {fileID: 0}
-  m_InstanceId: -644378
+  m_InstanceId: -1306

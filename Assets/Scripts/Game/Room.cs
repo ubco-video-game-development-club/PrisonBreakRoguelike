@@ -8,10 +8,24 @@ public class Room : MonoBehaviour
     public int x, y; 
     [HideInInspector]
     public bool visited = false;
+    [HideInInspector]
+    public bool initialized = false;
 
     private Tile[,] tiles;
 
-    public Tile GetTile(int x, int y)
+    public Vector2Int ToGridPosition(Vector2 worldPosition)
+    {
+        // Offset to local space
+        Vector2 temp = worldPosition - (Vector2)transform.position;
+
+        // Scale for tile size
+        temp /= LevelController.instance.tileScale;
+
+        // Round to int
+        return new Vector2Int(Mathf.FloorToInt(temp.x), Mathf.FloorToInt(temp.y));
+    }
+
+    public Tile TileAt(int x, int y)
     {
         if (x < 0 || x >= tiles.GetLength(0) ||
             y < 0 || y >= tiles.GetLength(1))
@@ -20,6 +34,23 @@ public class Room : MonoBehaviour
         }
 
         return tiles[x, y];
+    }
+
+    public Dictionary<Vector2, Tile> GetTileLookup()
+    {
+        Dictionary<Vector2, Tile> result = new Dictionary<Vector2, Tile>();
+        if (tiles == null)
+        {
+            Debug.Log("bruh wut");
+        }
+        for (int i = 0; i < tiles.GetLength(0); i++)
+        {
+            for (int j = 0; j < tiles.GetLength(1); j++)
+            {
+                result.Add(tiles[i, j].transform.position, tiles[i, j]);
+            }
+        }
+        return result;
     }
 
     public List<Item> GetItems()
@@ -70,6 +101,7 @@ public class Room : MonoBehaviour
         float roomScale = roomSize * tileScale;
         bc2d.offset = new Vector2(roomScale / 2, roomScale / 2);
         bc2d.size = new Vector2(roomScale, roomScale);
+        initialized = true;
     }
 
     public void InitializeObjects(GameObject[] decoPrefabs, GameObject[] itemPrefabs, GameObject[] enemyPrefabs, float decoChance, float itemChance, float enemyChance) 
@@ -100,8 +132,15 @@ public class Room : MonoBehaviour
                 
                 if (objects != null)
                 {
-                    int randIndex = Random.Range(0, objects.Length); 
-                    tile.occupant = Instantiate(objects[randIndex], tile.pos, Quaternion.identity);
+                    int randIndex = Random.Range(0, objects.Length);
+                    GameObject obj = objects[randIndex];
+                    tile.occupant = Instantiate(obj, tile.pos, Quaternion.identity);
+
+                    Item item;
+                    if (obj.TryGetComponent<Item>(out item))
+                    {
+                        item.SetOccupiedTile(tile);
+                    }
                 }
             }
         }   
@@ -110,7 +149,7 @@ public class Room : MonoBehaviour
     {
         Tile tile;
         do  
-            tile = GetTile(Random.Range(0, tiles.GetLength(0)), Random.Range(0, tiles.GetLength(1))); // Get a single, non occupied point randomly
+            tile = TileAt(Random.Range(0, tiles.GetLength(0)), Random.Range(0, tiles.GetLength(1))); // Get a single, non occupied point randomly
 
         while(tile.occupant != null); 
 

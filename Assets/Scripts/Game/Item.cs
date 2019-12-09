@@ -8,9 +8,25 @@ public class Item : MonoBehaviour
     public Color idleColor;
     public Color highlightColor;
 
+    private Tile occupiedTile;
+
     void Start()
     {
         GetComponent<SpriteRenderer>().color = idleColor;
+    }
+
+    public void ClearOccupiedTile()
+    {
+        // broken?
+        if (occupiedTile != null)
+        {
+            occupiedTile.occupant = null;
+        }
+    }
+
+    public void SetOccupiedTile(Tile tile)
+    {
+        occupiedTile = tile;
     }
 
     public void SetAsTarget(bool isTarget)
