@@ -32,6 +32,7 @@ public class Player : MonoBehaviour
     public float bombRadius = 1f;
     public string bombTargetTag = "Deco";
 
+    private bool alive;
     private Room currentRoom;
     private Item currentItemTarget;
     private int energyDrinkCount;
@@ -43,6 +44,12 @@ public class Player : MonoBehaviour
     private int bombCount;
     private float bombCooldownTimer;
     private Animator animator;
+
+    public void Die()
+    {
+        alive = false;
+        HUDController.instance.ShowDeathScreen();
+    }
 
     public Tile GetCurrentTile()
     {
@@ -65,10 +72,16 @@ public class Player : MonoBehaviour
     void Start()
     {
         animator = GetComponent<Animator>();
+        alive = true;
     }
 
     void Update()
     {
+        if (!alive)
+        {
+            return;
+        }
+
         UpdateMovement();
         UpdateInteraction();
         UpdateEnergyDrink();
