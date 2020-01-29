@@ -21,6 +21,7 @@ public class LevelController : MonoBehaviour
     public Room roomPrefab;
     public Tile tilePrefab;
     public Tile wallTilePrefab;
+    public GameObject wallParentPrefab;
     public GameObject stairsPrefab;
     public float decoChance, itemChance, enemyChance; //enemyChance + itemChance + decoChance + emptyChance = 100% 
     public GameObject[] decoPrefabs;
@@ -39,7 +40,7 @@ public class LevelController : MonoBehaviour
     private Dictionary<string, List<Tile>> walls;
     private Dictionary<Vector2, Tile> wallTileLookup;
     private Dictionary<Vector2, Tile> doorTileLookup;
-    private Transform wallTileParent;
+    private GameObject wallTileParent;
 
     void Start()
     {
@@ -53,7 +54,7 @@ public class LevelController : MonoBehaviour
         walls = new Dictionary<string, List<Tile>>();
         wallTileLookup = new Dictionary<Vector2, Tile>();
         doorTileLookup = new Dictionary<Vector2, Tile>();
-        wallTileParent = new GameObject("Walls").transform;
+        wallTileParent = Instantiate(wallParentPrefab, Vector2.zero, Quaternion.identity) as GameObject;
         NewLevel();
     }
 
@@ -564,7 +565,7 @@ public class LevelController : MonoBehaviour
         {
             return wallTileLookup[pos];
         }
-        Tile wallTile = Instantiate(wallTilePrefab, pos, Quaternion.identity, wallTileParent);
+        Tile wallTile = Instantiate(wallTilePrefab, pos, Quaternion.identity, wallTileParent.transform);
         wallTile.name = "WallTile[" + pos.x + ", " + pos.y + "]";
         wallTile.isWall = true;
         wallTileLookup.Add(pos, wallTile);

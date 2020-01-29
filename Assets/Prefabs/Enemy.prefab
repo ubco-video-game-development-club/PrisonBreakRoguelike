@@ -146,5 +146,5 @@ MonoBehaviour:
   visionDistance: 8
   visionArcAngle: 0.4
   hearingRadius: 5
-  attackSpeed: 4
-  patrolSpeed: 3
+  attackSpeed: 3.5
+  patrolSpeed: 2.5
