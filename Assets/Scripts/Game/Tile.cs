@@ -8,12 +8,11 @@ public class Tile : MonoBehaviour
     public int x, y;
     public bool isDoor;
     public bool isWall;
-    public Vector3 pos;
     
     /// <summary>
     /// The GameObject that is occupying this Tile.
     /// </summary>
-    [HideInInspector]
+    //[HideInInspector]
     public GameObject occupant;
 
     private SpriteRenderer sr;

@@ -204,11 +204,10 @@ public class Enemy : MonoBehaviour
     //switch direction on collision
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        GameObject other = collision.otherCollider.gameObject;
-
-        if (other == player)
+        Player p;
+        if (collision.collider.TryGetComponent<Player>(out p))
         {
-            player.Die();
+            p.Die();
         }
         else
         {

@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class HUDController : MonoBehaviour
 {
@@ -24,9 +25,9 @@ public class HUDController : MonoBehaviour
         deathScreen.SetActive(true);
     }
 
+    // called from death screen button
     public void RestartGame()
     {
-        // called from death screen button
-        deathScreen.SetActive(false);
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 }
