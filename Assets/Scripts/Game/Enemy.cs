@@ -204,7 +204,15 @@ public class Enemy : MonoBehaviour
     //switch direction on collision
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        target = NewTargetLocation();
+        Player p;
+        if (collision.collider.TryGetComponent<Player>(out p))
+        {
+            p.Die();
+        }
+        else
+        {
+            target = NewTargetLocation();
+        }
     }
 
     private void UpdateStunnedState()

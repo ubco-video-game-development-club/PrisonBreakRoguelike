@@ -93,7 +93,6 @@ public class Room : MonoBehaviour
                 tile.x = i;
                 tile.y = j;
                 tiles[i, j] = tile;
-                tile.pos = pos;
             }
         }
         // Fit the boxcollider of the room to the roomSize for raycasting
@@ -109,7 +108,7 @@ public class Room : MonoBehaviour
         GameObject[] objects = null;
         foreach(Tile tile in tiles)
         {           
-            if(tile.occupant == null)
+            if(!tile.IsOccupied())
             {
                 float rand = Random.Range(0f, 1f);
 
@@ -133,11 +132,13 @@ public class Room : MonoBehaviour
                 if (objects != null)
                 {
                     int randIndex = Random.Range(0, objects.Length);
-                    GameObject obj = objects[randIndex];
-                    tile.occupant = Instantiate(obj, tile.pos, Quaternion.identity);
+                    GameObject objPrefab = objects[randIndex];
+                    
+                    GameObject objInstance = Instantiate(objPrefab, tile.transform.position, Quaternion.identity);
+                    tile.occupant = objInstance;
 
                     Item item;
-                    if (obj.TryGetComponent<Item>(out item))
+                    if (objInstance.TryGetComponent<Item>(out item))
                     {
                         item.SetOccupiedTile(tile);
                     }
@@ -153,7 +154,7 @@ public class Room : MonoBehaviour
 
         while(tile.occupant != null); 
 
-        tile.occupant = Instantiate(stairs, tile.pos, Quaternion.identity);
+        tile.occupant = Instantiate(stairs, tile.transform.position, Quaternion.identity);
     }
 }
 

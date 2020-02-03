@@ -8,7 +8,7 @@ public class Item : MonoBehaviour
     public Color idleColor;
     public Color highlightColor;
 
-    private Tile occupiedTile;
+    public Tile occupiedTile;
 
     void Start()
     {
