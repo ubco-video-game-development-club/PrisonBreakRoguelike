@@ -1,12 +1,14 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.Universal;
+using UnityEngine.SceneManagement;  
 
 public class LevelController : MonoBehaviour
 {
     public static LevelController instance = null;
+    public static int currentLevel = 0;
 
+    public int numLevels = 1;
     public int width, height;
     public int roomSize = 16;
     public float tileScale = 1f;
@@ -14,7 +16,7 @@ public class LevelController : MonoBehaviour
     [Tooltip("The minimum distance from the player's start location that the exit to the next level will spawn.")]
     public int exitDistance = 1;
     public BranchMode branchMode;
-    [Tooltip("The probability of a room to skip the branch algorithm.")]
+    [Tooltip("The probability of a room to completely skip the branch algorithm.")]
     public float skipProbability;
     [Tooltip("The probability of a room to branch off in a given direction.")]
     public float branchProbability;
@@ -29,11 +31,8 @@ public class LevelController : MonoBehaviour
     public GameObject[] enemyPrefabs;
     [Tooltip("Wall tile sprites with index based on adjacent tiles: 1 = top, 2 = right, 4 = bottom, 8 = left.")]
     public Sprite[] wallSprites = new Sprite[16];
-
     public Sprite[] floorSprites;
-
     public float[] floorWeights; // Values must be entered in the same order as the sprites they will corrispond to
-
     public Sprite doorSprite;
 
     private Room[,] rooms;
@@ -55,10 +54,31 @@ public class LevelController : MonoBehaviour
         wallTileLookup = new Dictionary<Vector2, Tile>();
         doorTileLookup = new Dictionary<Vector2, Tile>();
         wallTileParent = Instantiate(wallParentPrefab, Vector2.zero, Quaternion.identity) as GameObject;
-        NewLevel();
+        InitializeLevel();
     }
 
-    public void NewLevel() 
+    public void LoadFirstLevel()
+    {
+        currentLevel = 0;
+        SceneManager.LoadSceneAsync("Level");
+    }
+
+    public void LoadNextLevel()
+    {
+        currentLevel++;
+        // If we've completed enough levels, we reach the win screen
+        if (currentLevel >= numLevels)
+        {
+            SceneManager.LoadSceneAsync("Win");
+        }
+        // Otherwise, load the next level
+        else
+        {
+            SceneManager.LoadSceneAsync("Level");
+        }
+    }
+
+    public void InitializeLevel() 
     {
         InitializeGrid();
         GenerateLevel();
