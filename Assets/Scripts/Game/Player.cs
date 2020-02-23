@@ -1,6 +1,6 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Player : MonoBehaviour
 {
@@ -47,7 +47,7 @@ public class Player : MonoBehaviour
     public void Die()
     {
         alive = false;
-        HUDController.instance.ShowDeathScreen();
+        SceneManager.LoadSceneAsync("Lose");
     }
 
     public Tile GetCurrentTile()
@@ -89,7 +89,7 @@ public class Player : MonoBehaviour
     }
 
     void OnTriggerEnter2D(Collider2D collider)
-    {   
+    {
         Room room;
         if (collider.TryGetComponent<Room>(out room))
         {

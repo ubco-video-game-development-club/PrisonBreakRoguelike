@@ -6,10 +6,11 @@ using UnityEngine.SceneManagement;
 public class GameManager : MonoBehaviour // Used to encapsulate SceneManager calls
 {
     public float pauseWidth, pauseHeight;
-    
     public float pauseMargin;
     public float buttonWidth, buttonHeight;
+
     private bool isPaused;
+
     void Update() 
     {
         TogglePause();
@@ -18,14 +19,6 @@ public class GameManager : MonoBehaviour // Used to encapsulate SceneManager cal
         {
             isPaused = !isPaused;
         }
-
-    }
-
-
-    public void GenLevel()
-    { 
-        SceneManager.LoadSceneAsync("Level");
-        isPaused = false;
     }
     
     public void TogglePause() 
@@ -65,6 +58,4 @@ public class GameManager : MonoBehaviour // Used to encapsulate SceneManager cal
 
         }
     }
-        
-
 }
