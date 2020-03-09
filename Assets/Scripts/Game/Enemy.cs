@@ -12,6 +12,7 @@ public class Enemy : MonoBehaviour
 
     public float visionDistance = 1f;
     public float visionArcAngle = 0f;
+    public float followDistance = 1f;
     public float hearingRadius = 1f;
     public float attackSpeed = 1f;
     public float patrolSpeed = 1f;
@@ -31,6 +32,7 @@ public class Enemy : MonoBehaviour
     private Dictionary<Tile, Tile> pathMap;
     private PriorityQueue<Tile, float> tileQueue;
 
+    ///<summary>Set this Enemy to the Stunned state for stunDuration seconds.</summary>
     public void Stun(float stunDuration)
     {
         isStunned = true;
@@ -156,10 +158,14 @@ public class Enemy : MonoBehaviour
 
     private void Attack()
     {
+        List<Vector2> movePath = new List<Vector2>();
+        // if the player is out of range, set state back to patrol and return
+
+        // check if the player has moved 
         Tile playerTile = player.GetCurrentTile();
         if (movePath == null || movePath.Count == 0)
         {
-            movePath = GetPathToTarget(playerTile);
+            movePath = GetPathToTarget(player.transform.position);
             if (movePath == null || movePath.Count == 0)
             {
                 state = EnemyState.Patrol;
@@ -169,14 +175,14 @@ public class Enemy : MonoBehaviour
         else
         {
             Vector2 playerPos = playerTile.transform.position;
-            Vector2 endPos = movePath[movePath.Count - 1].transform.position;
+            Vector2 endPos = movePath[movePath.Count - 1];
             if (Vector2.Distance(playerPos, endPos) > 1)
             {
-                movePath = GetPathToTarget(playerTile);
+                movePath = GetPathToTarget(player.transform.position);
             }
         }
 
-        Vector2 nextPos = movePath[0].transform.position;
+        Vector2 nextPos = movePath[0];
         tempPos = nextPos;
         float speed = attackSpeed * Time.deltaTime;
         transform.position = Vector2.MoveTowards(transform.position, nextPos, speed);
@@ -240,49 +246,83 @@ public class Enemy : MonoBehaviour
         }
     }
 
-    private List<Tile> GetPathToTarget(Tile target)
+
+
+
+
+
+
+
+
+    ///<summary>
+    /// Returns true if the target is within followDistance and is in the same room or an adjacent room to the Enemy.
+    ///</summary>
+    private bool IsTargetInRange(Vector2 target)
     {
-        // A dictionary of all searchable tiles by position
-        tileMap = GetTileMap();
-        // A dictionary of visited tiles. Each tile stores
-        // the previous step taken to get to it so that we
-        // can get the path back to our initial position.
-        pathMap = new Dictionary<Tile, Tile>();
-        // A priority queue which prioritizes checking tiles 
-        // that are closer to the target
-        tileQueue = new PriorityQueue<Tile, float>();
+        return true;
+    }
+
+    ///<summary>
+    /// Returns true if the Enemy has line of sight to the player. Obstacles and walls block line of sight.
+    ///</summary>
+    private bool IsTargetVisible(Vector2 target)
+    {
+        return true;
+    }
+
+    ///<summary>
+    /// Returns true if the Enemy already has a valid path to the player and the player has not moved too far from their previous position.
+    ///</summary>
+    private bool HasPathToTarget(Vector2 target)
+    {
+        return true;
+    }
+
+    ///<summary>
+    /// Moves the enemy towards a target position.
+    ///</summary>
+    private void MoveTowardsTarget(Vector2 target)
+    {
+        return;
+    }
+
+    ///<summary>
+    /// Returns the shortest path to the target position as an ordered list of points.
+    ///</summary>
+    private List<Vector2> GetPathToTarget(Vector2 target)
+    {
+        // Get a lookup table of nearby tiles to check (so we can get tiles by position)
+        Dictionary<Vector2, Tile> tilesInRange = GetTilesInRange();
+        // Store a list of tiles we've checked. Each tile stores the previous step taken to get there.
+        // This will let us loop back through all the previous steps to find the path taken to reach the target.
+        Dictionary<Vector2, Vector2> pathMap = new Dictionary<Vector2, Vector2>();
+        // A priority queue which prioritizes checking tiles that are closer to the target for efficiency
+        PriorityQueue<Tile, float> queue = new PriorityQueue<Tile, float>();
 
         // Start from the current tile the enemy is on
         Tile currentTile = GetCurrentTile();
-        pathMap.Add(currentTile, null);
+        // Use negativeInfinity to represent the end of our path
+        pathMap.Add(currentTile.transform.position, Vector2.negativeInfinity);
         do
         {
             // Check if we've reached the target
             Vector2 currentPos = currentTile.transform.position;
-            Vector2 targetPos = target.transform.position;
-            if (currentPos == targetPos)
+            if (currentPos == target)
             {
-                List<Tile> result = new List<Tile>();
-                // Get the path from the target
-                while (pathMap[currentTile] != null)
+                List<Vector2> result = new List<Vector2>();
+                // While we haven't reached the end of the path, get the next step
+                while (pathMap[currentPos] != Vector2.negativeInfinity)
                 {
-                    result.Add(currentTile);
-                    currentTile = pathMap[currentTile];
+                    result.Add(currentPos);
+                    currentPos = pathMap[currentPos];
                 }
-                // We want the path TO the target
+                // We want the path TO the target not FROM the target
                 result.Reverse();
-                if (result.Count == 0)
-                {
-                    Debug.Log("that's a count of 0");
-                }
                 return result;
             }
 
             // Add all the adjacent tiles to the queue
-            QueueAdjacentTile(currentTile, targetPos, Vector2.left);
-            QueueAdjacentTile(currentTile, targetPos, Vector2.right);
-            QueueAdjacentTile(currentTile, targetPos, Vector2.up);
-            QueueAdjacentTile(currentTile, targetPos, Vector2.down);
+            QueueAdjacentTiles(queue, currentTile, target);
 
             // Move to the next tile in the queue
             currentTile = tileQueue.Remove();
@@ -292,30 +332,10 @@ public class Enemy : MonoBehaviour
         return null;
     }
 
-    private void QueueAdjacentTile(Tile currentTile, Vector2 targetPos, Vector2 direction)
-    {
-        float tileScale = LevelController.instance.tileScale;
-        direction.Normalize();
-        Vector2 adjPos = (Vector2)currentTile.transform.position + (direction * tileScale);
-        float adjDist = Vector2.Distance(adjPos, targetPos);
-        Tile adjTile = tileMap.ContainsKey(adjPos) ? tileMap[adjPos] : LevelController.instance.DoorTileAt(adjPos);
-        if (CanMoveTo(adjTile))
-        {
-            pathMap.Add(adjTile, currentTile);
-            tileQueue.Add(adjTile, adjDist);
-        }
-    }
-
-    private bool CanMoveTo(Tile tile)
-    {
-        return (
-            tile != null &&
-            !pathMap.ContainsKey(tile) &&
-            !tile.IsOccupied()
-        );
-    }
-
-    private Dictionary<Vector2, Tile> GetTileMap()
+    ///<summary>
+    /// Returns a lookup table of all tiles in the Enemy's current room and all adjacent rooms.
+    ///</summary>
+    private Dictionary<Vector2, Tile> GetTilesInRange()
     {
         Dictionary<Vector2, Tile> tileMap = new Dictionary<Vector2, Tile>();
         List<Room> adjacentRooms = new List<Room>();
@@ -329,6 +349,54 @@ public class Enemy : MonoBehaviour
             }
         }
         return tileMap;
+    }
+
+    ///<summary>
+    /// Returns an optimized path with the minimal number of points.
+    ///</summary>
+    private List<Vector2> OptimizePath(List<Vector2> path)
+    {
+        return null;
+    }
+
+    ///<summary>
+    /// Adds the adjacent tiles to the queue by priority of their distance to the target.
+    ///</summary>
+    private void QueueAdjacentTiles(PriorityQueue<Tile, float> queue, Tile currentTile, Vector2 target)
+    {
+        QueueAdjacentTile(currentTile, target, Vector2.left);
+        QueueAdjacentTile(currentTile, target, Vector2.right);
+        QueueAdjacentTile(currentTile, target, Vector2.up);
+        QueueAdjacentTile(currentTile, target, Vector2.down);
+    }
+
+    ///<summary>
+    /// Adds the adjacent tile to the queue by priority of its distance to the target.
+    ///</summary>
+    private void QueueAdjacentTile(Tile currentTile, Vector2 target, Vector2 direction)
+    {
+        float tileScale = LevelController.instance.tileScale;
+        direction.Normalize();
+        Vector2 adjPos = (Vector2)currentTile.transform.position + (direction * tileScale);
+        float adjDist = Vector2.Distance(adjPos, target);
+        Tile adjTile = tileMap.ContainsKey(adjPos) ? tileMap[adjPos] : LevelController.instance.DoorTileAt(adjPos);
+        if (IsTileValid(adjTile))
+        {
+            pathMap.Add(adjTile, currentTile);
+            tileQueue.Add(adjTile, adjDist);
+        }
+    }
+
+    ///<summary>
+    /// Returns true if the tile has not already been visited and it is not occupied by an obstacle.
+    ///</summary>
+    private bool IsTileValid(Tile tile)
+    {
+        return (
+            tile != null &&
+            !pathMap.ContainsKey(tile) &&
+            !tile.IsOccupied()
+        );
     }
 }
 
