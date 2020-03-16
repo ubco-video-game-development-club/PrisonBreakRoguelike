@@ -1,15 +1,15 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.Universal;
 using UnityEngine.SceneManagement;  
 
-public class LevelController : MonoBehaviour
+public class TempLevelController : MonoBehaviour
 {
-    public static LevelController instance = null;
+    public static TempLevelController instance = null;
     public static int currentLevel = 0;
 
     public int numLevels = 1;
-    public int gridWidth, gridHeight;
+    public int width, height;
     public int roomSize = 16;
     public float tileScale = 1f;
     public int spawnX, spawnY;
@@ -35,7 +35,10 @@ public class LevelController : MonoBehaviour
     public float[] floorWeights; // Values must be entered in the same order as the sprites they will corrispond to
     public Sprite doorSprite;
 
-    private Tile[,] tiles;
+    private Room[,] rooms;
+    private Dictionary<string, List<Tile>> walls;
+    private Dictionary<Vector2, Tile> wallTileLookup;
+    private Dictionary<Vector2, Tile> doorTileLookup;
     private GameObject wallTileParent;
 
     void Start()
@@ -46,7 +49,10 @@ public class LevelController : MonoBehaviour
         }
         instance = this;
 
-        tiles = new Tile[gridWidth, gridHeight];
+        rooms = new Room[width, height]; 
+        walls = new Dictionary<string, List<Tile>>();
+        wallTileLookup = new Dictionary<Vector2, Tile>();
+        doorTileLookup = new Dictionary<Vector2, Tile>();
         wallTileParent = Instantiate(wallParentPrefab, Vector2.zero, Quaternion.identity) as GameObject;
         InitializeLevel();
     }
@@ -72,29 +78,200 @@ public class LevelController : MonoBehaviour
         }
     }
 
-    public void InitializeLevel()
+    public void InitializeLevel() 
     {
         InitializeGrid();
         GenerateLevel();
         SpawnPlayer();
     }
 
-    public static int GridDistance(int x1, int y1, int x2, int y2)
+    public Room GetNearestRoom(Vector3 position)
+    {
+        Room nearestRoom = null;
+        float nearestDist = Mathf.Infinity;
+        for (int i = 0; i < rooms.GetLength(0); i++)
+        {
+            for (int j = 0; j < rooms.GetLength(1); j++)
+            {
+                Room room = rooms[i, j];
+                float dist = DistanceToRoom(position, room);
+                if (dist < nearestDist)
+                {
+                    nearestRoom = room;
+                    nearestDist = dist;
+                }
+            }
+        }
+        return nearestRoom;
+    }
+
+    public float DistanceToRoom(Vector2 position, Room room)
+    {
+        Vector2 roomCenterPos = room.transform.position;
+        roomCenterPos += Vector2.one * (roomSize / 2.0f);
+        float dist = Vector3.Distance(position, roomCenterPos);
+        return dist;
+    }
+
+    public static Vector2 RoundToTilePosition(Vector2 worldPosition)
+    {
+        float tileX = Mathf.Floor(worldPosition.x) + 0.5f;
+        float tileY = Mathf.Floor(worldPosition.y) + 0.5f;
+        return new Vector2(tileX, tileY);
+    }
+
+    public Tile WallTileAt(Vector2 position)
+    {
+        return wallTileLookup[position];
+    }
+
+    public Tile DoorTileAt(Vector2 position)
+    {
+        return doorTileLookup.ContainsKey(position) ? doorTileLookup[position] : null;
+    }
+
+    public List<Room> GetAdjacentInitializedRooms(int x, int y)
+    {
+        // List<Room> result = GetAdjacentRooms(x, y);
+        // for (int i = 0; i < result.Count; i++)
+        // {
+        //     if (!result[i].initialized)
+        //     {
+        //         result.RemoveAt(i);
+        //     }
+        // }
+        // return result;
+        List<Room> result = new List<Room>();
+        if (IsRoomValid(x+1, y) && rooms[x+1, y].initialized)
+        {
+            result.Add(rooms[x+1, y]);
+        }
+        if (IsRoomValid(x-1, y) && rooms[x-1, y].initialized)
+        {
+            result.Add(rooms[x-1, y]);
+        }
+        if (IsRoomValid(x, y+1) && rooms[x, y+1].initialized)
+        {
+            result.Add(rooms[x, y+1]);
+        }
+        if (IsRoomValid(x, y-1) && rooms[x, y-1].initialized)
+        {
+            result.Add(rooms[x, y-1]);
+        }
+        return result;
+
+    }
+
+    public List<Room> GetAdjacentUnvisitedRooms(int x, int y)
+    {
+        // List<Room> result = GetAdjacentRooms(x, y);
+        // for (int i = 0; i < result.Count; i++)
+        // {
+        //     if (result[i].visited)
+        //     {
+        //         result.RemoveAt(i);
+        //     }
+        // }
+        // return result;
+        List<Room> result = new List<Room>();
+        if (IsRoomValid(x+1, y) && !rooms[x+1, y].visited)
+        {
+            result.Add(rooms[x+1, y]);
+        }
+        if (IsRoomValid(x-1, y) && !rooms[x-1, y].visited)
+        {
+            result.Add(rooms[x-1, y]);
+        }
+        if (IsRoomValid(x, y+1) && !rooms[x, y+1].visited)
+        {
+            result.Add(rooms[x, y+1]);
+        }
+        if (IsRoomValid(x, y-1) && !rooms[x, y-1].visited)
+        {
+            result.Add(rooms[x, y-1]);
+        }
+        return result;
+    }
+
+    public List<Room> GetAdjacentRooms(int x, int y)
+    {
+        List<Room> result = new List<Room>();
+        if (IsRoomValid(x+1, y))
+        {
+            result.Add(rooms[x+1, y]);
+        }
+        if (IsRoomValid(x-1, y))
+        {
+            result.Add(rooms[x-1, y]);
+        }
+        if (IsRoomValid(x, y+1))
+        {
+            result.Add(rooms[x, y+1]);
+        }
+        if (IsRoomValid(x, y-1))
+        {
+            result.Add(rooms[x, y-1]);
+        }
+        return result;
+    }
+
+    public bool IsRoomValid(int x, int y)
+    {
+        return !IsRoomOutOfBounds(x, y) && !IsRoomNull(x, y);
+    }
+
+    public static int TileDistance(int x1, int y1, int x2, int y2)
     {
         return Mathf.Abs(x1 - x2) + Mathf.Abs(y1 - y2);
     }
 
-    // We use Vector2Ints to represent grid positions (rooms)
+    public Room GetRandomRoom(List<Room> rooms)
+    {
+        int rand = Random.Range(0, rooms.Count);
+        return rooms[rand];
+    }
+
+    public Tile GetRandomTile(List<Tile> tiles)
+    {
+        int rand = Random.Range(0, tiles.Count);
+        return tiles[rand];
+    }
+
+    private void InitializeGrid()
+    {
+        Transform parentRoom = new GameObject("Rooms").transform;
+        for (int i = 0; i < width; i++)
+        {
+            for (int j = 0; j < height; j++) 
+            {
+                float scale = (roomSize + 1) * tileScale;
+                Vector2 pos = new Vector2(i * scale, j  * scale);
+                Room room = Instantiate(roomPrefab, pos, Quaternion.identity, parentRoom) as Room;
+                room.name = "Room[" + i + ", " + j + "]";
+                room.x = i;
+                room.y = j;
+                rooms[i, j] = room;
+            }
+        }
+    }
+
     private void GenerateLevel()
     {
-        // The procedural generation algorithm returns a path through 
-        List<(Vector2Int, Vector2Int)> doors = new List<(Vector2Int, Vector2Int)>();
-        
-        Vector2Int spawnPoint = new Vector2Int(spawnX, spawnY);
-        Vector2Int exitPoint = GenerateExit();
-        List<Vector2Int> exitPath = GeneratePath(spawnPoint, exitPoint);
-        List<Vector2Int> rooms = GenerateBranches(exitPath);
-        GenerateBoundaryWall();
+        List<Room> validExits = new List<Room>();
+        for (int i = 0; i < width; i++)
+        {
+            for (int j = 0; j < height; j++)
+            {
+                if (TileDistance(i, j, spawnX, spawnY) > exitDistance)
+                {
+                    validExits.Add(rooms[i, j]);
+                }
+            }
+        }
+        Room exit = GetRandomRoom(validExits);
+        List<Room> exitPath = GeneratePath(exit.x, exit.y, spawnX, spawnY);
+        List<Room> generatedRooms = GenerateBranches(exitPath);
+        GenerateBoundaryWall(); 
         AssignWallSprites();
         foreach (Room room in generatedRooms)
         {
@@ -129,101 +306,47 @@ public class LevelController : MonoBehaviour
         player.Spawn(spawn, roomPos + offset);
     }
 
-    ///<summary>Generate a random exit point that is at least exitDistance grid squares away from the player spawn point.</summary>
-    private Vector2Int GenerateExit()
+    private List<Room> GeneratePath(int startX, int startY, int endX, int endY)
     {
-        List<Vector2Int> validExits = new List<Vector2Int>();
-        for (int i = 0; i < gridWidth; i++)
+        List<Room> path;
+
+        do
         {
-            for (int j = 0; j < gridHeight; j++)
-            {
-                // Add all grid squares that are sufficiently far from the player spawn point
-                if (GridDistance(i, j, spawnX, spawnY) > exitDistance)
-                {
-                    validExits.Add(new Vector2Int(i, j));
-                }
-            }
+            path = new List<Room>();
+            ClearVisited();
+
+            Room start = rooms[startX, startY];
+            start.visited = true;
+            path.Add(start);
+
+            path = GeneratePath(path, startX, startY, endX, endY);
         }
-        // Choose a random grid square (room)
-        int rand = Random.Range(0, validExits.Count);
-        return validExits[rand];
-    }
+        while (path == null);
 
-    ///<summary>Generate a random path between the player spawn and the exit.</summary>
-    private List<Vector2Int> GeneratePath(Vector2Int start, Vector2Int end)
-    {
-        List<Vector2Int> path = null;
-
-        // I would describe this as a "flailing arm" path generation algorithm.
-        // Each time this loop runs, it tries to find a random path from the start
-        // to the exit by moving randomly through the grid room-by-room until it
-        // either reaches the exit or gets stuck, in which case it runs again.
-        while (path == null)
-        {
-            // Reset the list at the start of the iteration
-            path = new List<Vector2Int>();
-
-            // Keep track of the grid squares we've visited in this iteration
-            bool[,] visited = new bool[gridWidth, gridHeight];
-
-            Vector2Int current = start;
-            // Move through the grid room-by-room
-            while (!current.Equals(end))
-            {
-                path.Add(current);
-                visited[current.x, current.y] = true;
-
-                // Get a random adjacent room
-                current = GetRandomAdjacentRoom(current, visited);
-
-                // No more adjacent rooms - we're stuck! Break and try again.
-                if (current == null)
-                {
-                    path = null;
-                    break;
-                }
-            }
-        }
+        GeneratePathWalls(path);
 
         return path;
     }
 
-    ///<summary>Returns a random adjacent grid position that has not been visited yet.</summary>
-    private Vector2Int GetRandomAdjacentRoom(Vector2Int room, bool[,] visited)
+    private List<Room> GeneratePath(List<Room> path, int x, int y, int endX, int endY)
     {
-        // Generate a list of valid adjacent rooms
-        List<Vector2Int> adjacentRooms = new List<Vector2Int>();
-        Vector2Int right = room + Vector2Int.right;
-        if (IsInBounds(right) && !visited[right.x, right.y])
-        {
-            adjacentRooms.Add(right);
-        }
-        Vector2Int left = room + Vector2Int.left;
-        if (IsInBounds(left) && !visited[left.x, left.y])
-        {
-            adjacentRooms.Add(left);
-        }
-        Vector2Int top = room + Vector2Int.up;
-        if (IsInBounds(top) && !visited[top.x, top.y])
-        {
-            adjacentRooms.Add(top);
-        }
-        Vector2Int bottom = room + Vector2Int.down;
-        if (IsInBounds(bottom) && !visited[bottom.x, bottom.y])
-        {
-            adjacentRooms.Add(bottom);
-        }
-        
-        // Select a random valid adjacent room
-        int rand = Random.Range(0, adjacentRooms.Count);
-        return adjacentRooms[rand];
-    }
+        List<Room> adjacentRooms = GetAdjacentUnvisitedRooms(x, y);
 
-    ///<summary>Checks if a grid position is with the bounds of the grid.</summary>
-    private bool IsInBounds(Vector2Int room)
-    {
-        return room.x < gridWidth && room.x >= 0 && 
-            room.y < gridHeight && room.y >= 0;
+        if (adjacentRooms.Count == 0)
+        {
+            return null;
+        }
+
+        Room next = GetRandomRoom(adjacentRooms);
+        next.visited = true;
+        path.Add(next);
+
+        if (next.x == endX && next.y == endY)
+        {
+            return path;
+        }
+
+        return GeneratePath(path, next.x, next.y, endX, endY);
     }
 
     private void GeneratePathWalls(List<Room> path)
@@ -254,12 +377,13 @@ public class LevelController : MonoBehaviour
         }
     }
 
-    private List<Vector2Int> GenerateBranches(List<Vector2Int> path)
+    private List<Room> GenerateBranches(List<Room> path)
     {
-        List<Vector2Int> rooms = new List<Vector2Int>();
+        List<Room> generatedRooms = new List<Room>();
 
         // start from the spawn point
-        List<Vector2Int> roomList = new List<Vector2Int>(path);
+        path.Reverse();
+        List<Room> roomList = new List<Room>(path);
         while (roomList.Count > 0)
         {
             Room room = roomList[0];
@@ -310,7 +434,7 @@ public class LevelController : MonoBehaviour
         float posY = transform.position.y;
         Vector2 tileOffset = new Vector2(tileScale / 2, tileScale / 2);
 
-        for (int i = 0; i < gridWidth * (roomSize + 1) - 1; i++)
+        for (int i = 0; i < width * (roomSize + 1) - 1; i++)
         {
             // Create the bottom wall
             Vector2 pos = new Vector2(posX + (i * tileScale), posY - tileScale);
@@ -318,13 +442,13 @@ public class LevelController : MonoBehaviour
             Tile wallTile = CreateWallTile(pos + tileOffset);
 
             // Create the top wall
-            float heightScale = gridHeight * (roomSize + 1) * tileScale;
+            float heightScale = height * (roomSize + 1) * tileScale;
             pos = new Vector2(posX + (i * tileScale), posY + heightScale - tileScale);
 
             wallTile = CreateWallTile(pos + tileOffset);
         }
 
-        for (int i = 0; i < gridHeight * (roomSize + 1) - 1; i++)
+        for (int i = 0; i < height * (roomSize + 1) - 1; i++)
         {
             // Create the left wall
             Vector2 pos = new Vector2(posX - tileScale, posY + (i * tileScale));
@@ -332,7 +456,7 @@ public class LevelController : MonoBehaviour
             Tile wallTile = CreateWallTile(pos + tileOffset);
 
             // Create the right wall
-            float widthScale = gridWidth * (roomSize + 1) * tileScale;
+            float widthScale = width * (roomSize + 1) * tileScale;
             pos = new Vector2(posX + widthScale - tileScale, posY  + (i * tileScale));
 
             wallTile = CreateWallTile(pos + tileOffset);
@@ -431,9 +555,9 @@ public class LevelController : MonoBehaviour
 
     private void ClearVisited()
     {
-        for (int i = 0; i < gridWidth; i++)
+        for (int i = 0; i < width; i++)
         {
-            for (int j = 0; j < gridHeight; j++)
+            for (int j = 0; j < height; j++)
             {
                 rooms[i, j].visited = false;
             }
