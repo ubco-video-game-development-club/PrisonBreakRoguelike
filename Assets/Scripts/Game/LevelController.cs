@@ -84,15 +84,15 @@ public class LevelController : MonoBehaviour
         return Mathf.Abs(x1 - x2) + Mathf.Abs(y1 - y2);
     }
 
-    // We use Vector2Ints to represent grid positions (rooms)
     private void GenerateLevel()
     {
-        // The procedural generation algorithm returns a path through 
+        // The procedural generation algorithm generates a list of pairs
+        // of rooms between which doorways should be located.
         List<(Vector2Int, Vector2Int)> doors = new List<(Vector2Int, Vector2Int)>();
         
         Vector2Int spawnPoint = new Vector2Int(spawnX, spawnY);
         Vector2Int exitPoint = GenerateExit();
-        List<Vector2Int> exitPath = GeneratePath(spawnPoint, exitPoint);
+        doors.AddRange(GeneratePath(spawnPoint, exitPoint));
         List<Vector2Int> rooms = GenerateBranches(exitPath);
         GenerateBoundaryWall();
         AssignWallSprites();
@@ -129,9 +129,10 @@ public class LevelController : MonoBehaviour
         player.Spawn(spawn, roomPos + offset);
     }
 
-    ///<summary>Generate a random exit point that is at least exitDistance grid squares away from the player spawn point.</summary>
+    ///<summary>Returns a random exit point that is at least exitDistance grid squares away from the player spawn point.</summary>
     private Vector2Int GenerateExit()
     {
+        // We use Vector2Ints to represent grid positions (rooms)
         List<Vector2Int> validExits = new List<Vector2Int>();
         for (int i = 0; i < gridWidth; i++)
         {
@@ -149,10 +150,11 @@ public class LevelController : MonoBehaviour
         return validExits[rand];
     }
 
-    ///<summary>Generate a random path between the player spawn and the exit.</summary>
-    private List<Vector2Int> GeneratePath(Vector2Int start, Vector2Int end)
+    ///<summary>Returns a random path between the player spawn and the exit as a list of steps between rooms.</summary>
+    private List<(Vector2Int, Vector2Int)> GeneratePath(Vector2Int start, Vector2Int end)
     {
-        List<Vector2Int> path = null;
+        // We use Vector2Ints to represent grid positions (rooms)
+        List<(Vector2Int, Vector2Int)> path = null;
 
         // I would describe this as a "flailing arm" path generation algorithm.
         // Each time this loop runs, it tries to find a random path from the start
@@ -161,18 +163,17 @@ public class LevelController : MonoBehaviour
         while (path == null)
         {
             // Reset the list at the start of the iteration
-            path = new List<Vector2Int>();
+            path = new List<(Vector2Int, Vector2Int)>();
 
             // Keep track of the grid squares we've visited in this iteration
             bool[,] visited = new bool[gridWidth, gridHeight];
+            visited[start.x, start.y] = true;
 
+            Vector2Int prev = start;
             Vector2Int current = start;
             // Move through the grid room-by-room
             while (!current.Equals(end))
             {
-                path.Add(current);
-                visited[current.x, current.y] = true;
-
                 // Get a random adjacent room
                 current = GetRandomAdjacentRoom(current, visited);
 
@@ -182,14 +183,92 @@ public class LevelController : MonoBehaviour
                     path = null;
                     break;
                 }
+                
+                // Add this step to our list
+                path.Add((prev, current));
+                visited[current.x, current.y] = true;
+
+                prev = current;
             }
         }
 
         return path;
     }
 
+    ///<summary>Returns a set of random branches off of a given path of rooms formatted as a list of steps between rooms.</summary>
+    private List<(Vector2Int, Vector2Int)> GenerateBranches(List<Vector2Int> path)
+    {
+        // We use Vector2Ints to represent grid positions (rooms)
+        List<(Vector2Int, Vector2Int)> branches = new List<(Vector2Int, Vector2Int)>();
+
+        // Copy the list of rooms from which to branch
+        List<Vector2Int> rooms = new List<Vector2Int>(path);
+
+        // Keep track of the grid squares we've visited
+        bool[,] visited = new bool[gridWidth, gridHeight];
+
+        // This algorithm works simply by stepping through each room in the path,
+        // and randomly choosing to generate doors in any given direction. You can
+        // customize various aspects of this process in the Unity editor.
+        while (rooms.Count > 0)
+        {
+            // Pop the first room off the list
+            Vector2Int current = rooms[0];
+            rooms.RemoveAt(0);
+            visited[current.x, current.y] = true;
+
+            // Determine whether to skip branching on this room entirely
+            if (Random.Range(0, 1.0f) < skipProbability)
+            {
+                continue;
+            }
+
+            // For each adjacent unvisited room, randomly decide whether to branch, 
+            // and if so, add that room to our list of rooms from which to branch
+            List<Vector2Int> adjacentRooms = GetAdjacentRooms(current, visited);
+            foreach (Vector2Int adj in adjacentRooms)
+            {
+                // Determine whether to branch to this room
+                if (Random.Range(0, 1.0f) < branchProbability)
+                {
+                    // Add this room to our list of rooms based on the branchMode
+                    if (branchMode == BranchMode.DEPTH_FIRST)
+                    {
+                        // *** In non-technical terms ***:
+                        // We will branch as far as possible off of this room of the path
+                        // before trying to branch off of other parts of the path
+
+                        // Depth-first uses a stack datastructure (LIFO)
+                        rooms.Insert(0, adj);
+                    }
+                    else if (branchMode == BranchMode.BREADTH_FIRST)
+                    {
+                        // *** In non-technical terms ***:
+                        // We will branch off of each room in the path evenly by one level at a time
+
+                        // Breadth-first uses a queue datastructure (FIFO)
+                        rooms.Add(adj);
+                    }
+
+                    // Add this branch to our list of branches
+                    branches.Add((current, adj));
+                }
+            }
+        }
+
+        return branches;
+    }
+
     ///<summary>Returns a random adjacent grid position that has not been visited yet.</summary>
     private Vector2Int GetRandomAdjacentRoom(Vector2Int room, bool[,] visited)
+    {
+        List<Vector2Int> adjacentRooms = GetAdjacentRooms(room, visited);
+        int rand = Random.Range(0, adjacentRooms.Count);
+        return adjacentRooms[rand];
+    }
+
+    ///<summary>Returns a list of adjacent grid positions that have not been visited yet.</summary>
+    private List<Vector2Int> GetAdjacentRooms(Vector2Int room, bool[,] visited)
     {
         // Generate a list of valid adjacent rooms
         List<Vector2Int> adjacentRooms = new List<Vector2Int>();
@@ -213,10 +292,7 @@ public class LevelController : MonoBehaviour
         {
             adjacentRooms.Add(bottom);
         }
-        
-        // Select a random valid adjacent room
-        int rand = Random.Range(0, adjacentRooms.Count);
-        return adjacentRooms[rand];
+        return adjacentRooms;
     }
 
     ///<summary>Checks if a grid position is with the bounds of the grid.</summary>
@@ -224,84 +300,6 @@ public class LevelController : MonoBehaviour
     {
         return room.x < gridWidth && room.x >= 0 && 
             room.y < gridHeight && room.y >= 0;
-    }
-
-    private void GeneratePathWalls(List<Room> path)
-    {
-        ClearVisited();
-        for (int i = 0; i < path.Count; i++)
-        {
-            Room room = path[i];
-            room.visited = true;
-
-            // Generate walls
-            List<Room> adjacentRooms = GetAdjacentUnvisitedRooms(room.x, room.y);
-            foreach (Room adj in adjacentRooms)
-            {
-                List<Tile> wall = GetWall(room, adj);
-                if (wall == null)
-                {
-                    wall = GenerateWall(room, adj);
-                }
-            }
-            
-            // Connect the path with doors
-            if (i < path.Count - 1)
-            {
-                List<Tile> wall = GetWall(room, path[i+1]);
-                GenerateRandomDoor(wall);
-            }
-        }
-    }
-
-    private List<Vector2Int> GenerateBranches(List<Vector2Int> path)
-    {
-        List<Vector2Int> rooms = new List<Vector2Int>();
-
-        // start from the spawn point
-        List<Vector2Int> roomList = new List<Vector2Int>(path);
-        while (roomList.Count > 0)
-        {
-            Room room = roomList[0];
-            roomList.RemoveAt(0);
-            room.visited = true;
-            
-            if (generatedRooms.Contains(room))
-            {
-                continue;
-            }
-            generatedRooms.Add(room);
-
-            // chance to not branch at all from this room
-            bool skipBranching = Random.Range(0, 1.0f) < skipProbability;
-
-            List<Room> adjacentRooms = GetAdjacentUnvisitedRooms(room.x, room.y);
-            foreach (Room adj in adjacentRooms)
-            {
-                List<Tile> wall = GetWall(room, adj);
-                if (wall == null)
-                {
-                    wall = GenerateWall(room, adj);
-                }
-
-                if (!skipBranching && Random.Range(0, 1.0f) < branchProbability)
-                {
-                    if (branchMode == BranchMode.DEPTH_FIRST)
-                    {
-                        // depth-first uses stack
-                        roomList.Insert(0, adj);
-                    }
-                    else if (branchMode == BranchMode.BREADTH_FIRST)
-                    {
-                        // breadth-first uses queue
-                        roomList.Add(adj);
-                    }
-                    GenerateRandomDoor(wall);
-                }
-            }
-        }
-
-        return generatedRooms;
     }
 
     private void GenerateBoundaryWall()
