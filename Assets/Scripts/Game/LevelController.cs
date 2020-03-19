@@ -74,7 +74,6 @@ public class LevelController : MonoBehaviour
 
     public void InitializeLevel()
     {
-        InitializeGrid();
         GenerateLevel();
         SpawnPlayer();
     }
@@ -92,32 +91,9 @@ public class LevelController : MonoBehaviour
         
         Vector2Int spawnPoint = new Vector2Int(spawnX, spawnY);
         Vector2Int exitPoint = GenerateExit();
-        doors.AddRange(GeneratePath(spawnPoint, exitPoint));
-        List<Vector2Int> rooms = GenerateBranches(exitPath);
-        GenerateBoundaryWall();
-        AssignWallSprites();
-        foreach (Room room in generatedRooms)
-        {
-            if (room.x == spawnX && room.y == spawnY)
-            {
-                room.InitializeTiles(tilePrefab, roomSize, tileScale, Color.blue, floorSprites, floorWeights);
-            }
-            else if (room.x == exit.x && room.y == exit.y)
-            {
-                room.InitializeTiles(tilePrefab, roomSize, tileScale, Color.red, floorSprites, floorWeights);
-            }
-            else if (exitPath.Contains(room))
-            {
-                room.InitializeTiles(tilePrefab, roomSize, tileScale, Color.white, floorSprites, floorWeights);
-            }
-            else
-            {
-                room.InitializeTiles(tilePrefab, roomSize, tileScale, Color.white, floorSprites, floorWeights);
-            }
-            room.InitializeObjects(decoPrefabs, itemPrefabs, enemyPrefabs, decoChance, itemChance, enemyChance); 
-        }
-        exit.InitializeExit(stairsPrefab); //Generate stairs in exit room
-        Debug.Log("Done");
+        List<Vector2Int> path = GeneratePath(spawnPoint, exitPoint);
+        doors.AddRange(GetPathDoors(path));
+        doors.AddRange(GenerateBranches(path));
     }
 
     private void SpawnPlayer()
@@ -151,10 +127,10 @@ public class LevelController : MonoBehaviour
     }
 
     ///<summary>Returns a random path between the player spawn and the exit as a list of steps between rooms.</summary>
-    private List<(Vector2Int, Vector2Int)> GeneratePath(Vector2Int start, Vector2Int end)
+    private List<Vector2Int> GeneratePath(Vector2Int start, Vector2Int end)
     {
         // We use Vector2Ints to represent grid positions (rooms)
-        List<(Vector2Int, Vector2Int)> path = null;
+        List<Vector2Int> path = null;
 
         // I would describe this as a "flailing arm" path generation algorithm.
         // Each time this loop runs, it tries to find a random path from the start
@@ -163,13 +139,13 @@ public class LevelController : MonoBehaviour
         while (path == null)
         {
             // Reset the list at the start of the iteration
-            path = new List<(Vector2Int, Vector2Int)>();
+            path = new List<Vector2Int>();
+            path.Add(start);
 
             // Keep track of the grid squares we've visited in this iteration
             bool[,] visited = new bool[gridWidth, gridHeight];
             visited[start.x, start.y] = true;
 
-            Vector2Int prev = start;
             Vector2Int current = start;
             // Move through the grid room-by-room
             while (!current.Equals(end))
@@ -185,17 +161,26 @@ public class LevelController : MonoBehaviour
                 }
                 
                 // Add this step to our list
-                path.Add((prev, current));
+                path.Add(current);
                 visited[current.x, current.y] = true;
-
-                prev = current;
             }
         }
 
         return path;
     }
 
-    ///<summary>Returns a set of random branches off of a given path of rooms formatted as a list of steps between rooms.</summary>
+    ///<summary>Returns a list of doors (pairs of rooms) generated from a path of rooms.</summary>
+    private List<(Vector2Int, Vector2Int)> GetPathDoors(List<Vector2Int> path)
+    {
+        List<(Vector2Int, Vector2Int)> doors = new List<(Vector2Int, Vector2Int)>();
+        for (int i = 0; i < path.Count - 1; i++)
+        {
+            doors.Add((path[i], path[i+1]));
+        }
+        return doors;
+    }
+
+    ///<summary>Returns a list of doors (pairs of rooms) generated from a set of random branches off a given path of rooms.</summary>
     private List<(Vector2Int, Vector2Int)> GenerateBranches(List<Vector2Int> path)
     {
         // We use Vector2Ints to represent grid positions (rooms)
@@ -300,176 +285,5 @@ public class LevelController : MonoBehaviour
     {
         return room.x < gridWidth && room.x >= 0 && 
             room.y < gridHeight && room.y >= 0;
-    }
-
-    private void GenerateBoundaryWall()
-    {
-        float posX = transform.position.x;
-        float posY = transform.position.y;
-        Vector2 tileOffset = new Vector2(tileScale / 2, tileScale / 2);
-
-        for (int i = 0; i < gridWidth * (roomSize + 1) - 1; i++)
-        {
-            // Create the bottom wall
-            Vector2 pos = new Vector2(posX + (i * tileScale), posY - tileScale);
-
-            Tile wallTile = CreateWallTile(pos + tileOffset);
-
-            // Create the top wall
-            float heightScale = gridHeight * (roomSize + 1) * tileScale;
-            pos = new Vector2(posX + (i * tileScale), posY + heightScale - tileScale);
-
-            wallTile = CreateWallTile(pos + tileOffset);
-        }
-
-        for (int i = 0; i < gridHeight * (roomSize + 1) - 1; i++)
-        {
-            // Create the left wall
-            Vector2 pos = new Vector2(posX - tileScale, posY + (i * tileScale));
-
-            Tile wallTile = CreateWallTile(pos + tileOffset);
-
-            // Create the right wall
-            float widthScale = gridWidth * (roomSize + 1) * tileScale;
-            pos = new Vector2(posX + widthScale - tileScale, posY  + (i * tileScale));
-
-            wallTile = CreateWallTile(pos + tileOffset);
-        }
-    }
-
-    //Generates a wall between two rooms
-    private List<Tile> GenerateWall(Room room1, Room room2)
-    {
-        List<Tile> wall = new List<Tile>();
-
-        // Get the direction of the wall with respect to room 1
-        int dirX = Mathf.Clamp(room2.x - room1.x, -1, 1);
-        int dirY = Mathf.Clamp(room2.y - room1.y, -1, 1);
-
-        // Get the world position of room 1
-        float startX = room1.transform.position.x; 
-        float startY = room1.transform.position.y;
-
-        // Offset by 1 room if dir is 1
-        float offsetX = (roomSize + 1) * tileScale * Mathf.Clamp(dirX, 0, 1);
-        float offsetY = (roomSize + 1) * tileScale * Mathf.Clamp(dirY, 0, 1);
-
-        // Offset by half tileScale because tiles are center-aligned
-        float tileOffset = 0.5f * tileScale;
-
-        // Offset by -1 tilescale
-        float dirOffsetX = -tileScale * Mathf.Abs(dirX);
-        float dirOffsetY = -tileScale * Mathf.Abs(dirY);
-
-        float posX = startX + offsetX + tileOffset + dirOffsetX;
-        float posY = startY + offsetY + tileOffset + dirOffsetY;
-
-        // Include corner tiles at the ends of the wall
-        for(int i = -1; i < roomSize + 1; i++)
-        {
-            float indexX = (Mathf.Abs(dirY) * i) * tileScale;
-            float indexY = (Mathf.Abs(dirX) * i) * tileScale;
-            Vector2 pos = new Vector2(posX + indexX, posY + indexY);
-            Tile wallTile = CreateWallTile(pos);
-            wall.Add(wallTile);
-        }
-
-        string key1 = room1.ToString() + room2.ToString();
-        string key2 = room2.ToString() + room1.ToString();
-        walls.Add(key1, wall);
-        walls.Add(key2, wall);
-
-        return wall;
-    }
-
-    private void GenerateRandomDoor(List<Tile> wall)
-    {
-        List<Tile> validTiles = wall.GetRange(2, wall.Count - 4);
-        List<Tile> chosenTiles = new List<Tile>();
-        Tile centerTile = GetRandomTile(validTiles);
-        chosenTiles.Add(centerTile);
-        chosenTiles.Add(wall[wall.IndexOf(centerTile) - 1]);
-        chosenTiles.Add(wall[wall.IndexOf(centerTile) + 1]);
-        foreach (Tile tile in chosenTiles)
-        {
-            wallTileLookup.Remove(tile.transform.position);
-            doorTileLookup.Add(tile.transform.position, tile);
-            tile.GetComponent<BoxCollider2D>().isTrigger = true;
-            tile.GetComponent<SpriteRenderer>().sprite = doorSprite;
-            tile.GetComponent<SpriteRenderer>().sortingLayerID = SortingLayer.NameToID("Background");
-            Destroy(tile.GetComponent<ShadowCaster2D>());
-        }
-    }
-
-    private void AssignWallSprites()
-    {
-        foreach (Tile wallTile in wallTileLookup.Values)
-        {
-            int spriteIndex = 0;
-
-            // top = 1
-            Vector2 top = wallTile.transform.position + new Vector3(0, tileScale);
-            spriteIndex += wallTileLookup.ContainsKey(top) ? 1 : 0;
-            
-            // right = 2
-            Vector2 right = wallTile.transform.position + new Vector3(tileScale, 0);
-            spriteIndex += wallTileLookup.ContainsKey(right) ? 2 : 0;
-            
-            // top = 4
-            Vector2 bottom = wallTile.transform.position + new Vector3(0, -tileScale);
-            spriteIndex += wallTileLookup.ContainsKey(bottom) ? 4 : 0;
-            
-            // top = 8
-            Vector2 left = wallTile.transform.position + new Vector3(-tileScale, 0);
-            spriteIndex += wallTileLookup.ContainsKey(left) ? 8 : 0;
-
-            wallTile.GetComponent<SpriteRenderer>().sprite = wallSprites[spriteIndex];
-        }
-    }
-
-    private void ClearVisited()
-    {
-        for (int i = 0; i < gridWidth; i++)
-        {
-            for (int j = 0; j < gridHeight; j++)
-            {
-                rooms[i, j].visited = false;
-            }
-        }
-    }
-
-    private bool IsRoomNull(int x, int y)
-    {
-        return rooms[x, y] == null;
-    }
-
-    private bool IsRoomOutOfBounds(int x, int y)
-    {
-        return (
-            x < 0 || x >= rooms.GetLength(0) ||
-            y < 0 || y >= rooms.GetLength(1)
-        );
-    }
-
-    // Creates a wall tile at the given position or returns 
-    // the wall tile that currently exists at that position
-    private Tile CreateWallTile(Vector2 pos)
-    {
-        if (wallTileLookup.ContainsKey(pos))
-        {
-            return wallTileLookup[pos];
-        }
-        Tile wallTile = Instantiate(wallTilePrefab, pos, Quaternion.identity, wallTileParent.transform);
-        wallTile.name = "WallTile[" + pos.x + ", " + pos.y + "]";
-        wallTile.isWall = true;
-        wallTileLookup.Add(pos, wallTile);
-        return wallTile;
-    }
-
-    // Returns the wall if it exists or null if not
-    private List<Tile> GetWall(Room room1, Room room2)
-    {
-        string key = room1.ToString() + room2.ToString();
-        return walls.ContainsKey(key) ? walls[key] : null;
     }
 }
