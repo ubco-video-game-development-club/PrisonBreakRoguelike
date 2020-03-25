@@ -11,6 +11,7 @@ public class LevelController : MonoBehaviour
     public int numLevels = 1;
     public int gridWidth, gridHeight;
     public int roomSize = 16;
+    public int doorSize = 3;
     public float tileScale = 1f;
     public int spawnX, spawnY;
     [Tooltip("The minimum distance from the player's start location that the exit to the next level will spawn.")]
@@ -23,7 +24,8 @@ public class LevelController : MonoBehaviour
     public Room roomPrefab;
     public Tile tilePrefab;
     public Tile wallTilePrefab;
-    public GameObject wallParentPrefab;
+    public GameObject tileParentPrefab;
+    public GameObject wallTileParentPrefab;
     public GameObject stairsPrefab;
     public float decoChance, itemChance, enemyChance; //enemyChance + itemChance + decoChance + emptyChance = 100% 
     public GameObject[] decoPrefabs;
@@ -36,7 +38,6 @@ public class LevelController : MonoBehaviour
     public Sprite doorSprite;
 
     private Tile[,] tiles;
-    private GameObject wallTileParent;
 
     void Start()
     {
@@ -46,17 +47,18 @@ public class LevelController : MonoBehaviour
         }
         instance = this;
 
-        tiles = new Tile[gridWidth, gridHeight];
-        wallTileParent = Instantiate(wallParentPrefab, Vector2.zero, Quaternion.identity) as GameObject;
-        InitializeLevel();
+        GenerateLevel();
+        SpawnPlayer();
     }
 
+    ///<summary>Loads the first game level.</summary>
     public void LoadFirstLevel()
     {
         currentLevel = 0;
         SceneManager.LoadSceneAsync("Level");
     }
 
+    ///<summary>Loads the next game level and checks if the player has reached the end.</summary>
     public void LoadNextLevel()
     {
         currentLevel++;
@@ -72,28 +74,117 @@ public class LevelController : MonoBehaviour
         }
     }
 
-    public void InitializeLevel()
-    {
-        GenerateLevel();
-        SpawnPlayer();
-    }
-
+    ///<summary>Returns the distance between two spaces in a grid as the x difference plus the y difference.</summary>
     public static int GridDistance(int x1, int y1, int x2, int y2)
     {
         return Mathf.Abs(x1 - x2) + Mathf.Abs(y1 - y2);
     }
 
+    ///<summary>Procedurally generates the game level.</summary>
     private void GenerateLevel()
     {
         // The procedural generation algorithm generates a list of pairs
         // of rooms between which doorways should be located.
-        List<(Vector2Int, Vector2Int)> doors = new List<(Vector2Int, Vector2Int)>();
+        List<(Vector2Int, Vector2Int)> doorways = new List<(Vector2Int, Vector2Int)>();
         
+        // Determine the player spawn point
         Vector2Int spawnPoint = new Vector2Int(spawnX, spawnY);
+        // Generate an exit point at a sufficient distance from the spawn point
         Vector2Int exitPoint = GenerateExit();
+        // Generate a random path between the spawn and exit points
         List<Vector2Int> path = GeneratePath(spawnPoint, exitPoint);
-        doors.AddRange(GetPathDoors(path));
-        doors.AddRange(GenerateBranches(path));
+        // Get the doorways along the path to be added
+        doorways.AddRange(GetPathDoors(path));
+        // Generate branches off the main path and save the generated doorways
+        doorways.AddRange(GenerateBranches(path));
+
+        InitializeTiles();
+        InitializeDoors(doorways);
+    }
+
+    ///<summary>Initializes all of the tiles in the level.</summary>
+    private void InitializeTiles()
+    {
+        // The number of tiles is equal to the number of rooms * the number of tiles per room
+        // +1 for the wall tiles per room, +1 overall for the final set of wall tiles
+        int numTilesX = (gridWidth * (roomSize + 1)) + 1;
+        int numTilesY = (gridHeight * (roomSize + 1)) + 1;
+        tiles = new Tile[numTilesX, numTilesY];
+
+        // A parent object for wall tiles used to optimize 2D shadowcasting
+        GameObject tileParent = Instantiate(tileParentPrefab, Vector2.zero, Quaternion.identity) as GameObject;
+        GameObject wallTileParent = Instantiate(wallTileParentPrefab, Vector2.zero, Quaternion.identity) as GameObject;
+
+        // Initialize all the Tile objects in the grid
+        for (int y = 0; y < gridHeight; y++)
+        {
+            for (int x = 0; x < gridWidth; x++)
+            {
+                // Check if this is a wall tile with some math
+                bool isWall = x % (roomSize + 1) == 0 || y % (roomSize + 1) == 0;
+
+                // Setup object properties
+                Tile prefab = isWall ? wallTilePrefab : tilePrefab;
+                Vector2 position = new Vector2(x, y);
+                GameObject parent = isWall ? wallTileParent : tileParent;
+
+                // Instantiate tile object
+                Tile tile = Instantiate(prefab, position, Quaternion.identity, parent.transform) as Tile;
+                tile.name = (isWall ? "Wall" : "") + "Tile[" + x + ", " + y + "]";
+                tile.isWall = isWall;
+                tiles[x, y] = tile;
+            }
+        }
+    }
+
+    ///<summary>Initializes door tiles at the given doorway positions.</summary>
+    private void InitializeDoors(List<(Vector2Int, Vector2Int)> doorways)
+    {
+        // BEWARE: This gets pretty heavy into Vector math in the conversion
+        // between room coordinates and tile coordinates. Each iteration of this
+        // loop basically takes two rooms, locates the wall tiles between those
+        // rooms, and cuts a doorway in a random point along that wall.
+        foreach ((Vector2Int, Vector2Int) door in doorways)
+        {
+            // Convert from room coordinates into tile coordinates
+            // This gets a little confusing...
+            Vector2Int startRoom = door.Item1;
+            Vector2Int endRoom = door.Item2;
+
+            // This is basically for determining which side of the
+            // startRoom the wall should be placed on. If the door
+            // leads vertically between rooms, it's a horizontal wall.
+            Vector2Int roomDirection = endRoom - startRoom;
+            // This is the direction our wall tiles align with.
+            // If it's a horizontal wall, we step through tiles along
+            // the x-axis. This is just perpendicular to the absolute
+            // value of roomDirection. I know, I'm sorry.
+            Vector2Int wallDirection = Vector2Int.one - (roomDirection * roomDirection);
+
+            // Convert startRoom to the tile coordinates of the
+            // bottom-left wall tile of that room.
+            Vector2Int startRoomTilePos = startRoom * (roomSize + 1);
+            // If the room direction is positive, offset by one room size.
+            // This is because we start from the bottom-left corner of startRoom.
+            Vector2Int startOffset = Vector2.Dot(roomDirection, Vector2.one) > 0 ?
+                roomDirection * (roomSize + 1) : Vector2Int.zero;
+            // Get the actual start position of our desired wall
+            Vector2Int startWallTilePos = startRoomTilePos + startOffset + wallDirection;
+
+            // Get a random index along our wall at which to start the door
+            int doorIndex = Random.Range(0, roomSize - doorSize + 1);
+            // Get the start position of the door based on the wall start position
+            Vector2Int startDoorTilePos = startWallTilePos + (wallDirection * doorIndex);
+
+            // Finally, loop through all the door tiles and set them as doors!
+            Vector2Int currentTilePos = startDoorTilePos;
+            for (int i = 0; i < doorSize; i++)
+            {
+                tiles[currentTilePos.x, currentTilePos.y].isDoor = true;
+                tiles[currentTilePos.x, currentTilePos.y].isWall = false;
+                currentTilePos += wallDirection;
+            }
+        }
     }
 
     private void SpawnPlayer()
@@ -126,7 +217,7 @@ public class LevelController : MonoBehaviour
         return validExits[rand];
     }
 
-    ///<summary>Returns a random path between the player spawn and the exit as a list of steps between rooms.</summary>
+    ///<summary>Returns a random path between the player spawn and the exit as a list of rooms.</summary>
     private List<Vector2Int> GeneratePath(Vector2Int start, Vector2Int end)
     {
         // We use Vector2Ints to represent grid positions (rooms)
