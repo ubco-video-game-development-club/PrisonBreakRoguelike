@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.Universal;
 using UnityEngine.SceneManagement;  
 
 public class LevelController : MonoBehaviour
@@ -8,36 +7,89 @@ public class LevelController : MonoBehaviour
     public static LevelController instance = null;
     public static int currentLevel = 0;
 
+    [Header("Level Generation Options")]
+    [Tooltip("The number of game levels that the player must complete to win.")]
     public int numLevels = 1;
-    public int gridWidth, gridHeight;
+
+    [Tooltip("The number of rooms along the x-axis that should be generated in the level.")]
+    public int gridWidth;
+    
+    [Tooltip("The number of rooms along the y-axis that should be generated in the level.")]
+    public int gridHeight;
+
+    [Tooltip("The number of tiles that form the side length of each room. Rooms are square.")]
     public int roomSize = 16;
+
+    [Tooltip("The number of tiles wide the doorways between rooms are.")]
     public int doorSize = 3;
-    public float tileScale = 1f;
-    public int spawnX, spawnY;
-    [Tooltip("The minimum distance from the player's start location that the exit to the next level will spawn.")]
+
+    [Tooltip("The x index of the room the player should spawn in. Room(0,0) is the bottom left room.")]
+    public int spawnX;
+    
+    [Tooltip("The y index of the room the player should spawn in. Room(0,0) is the bottom left room.")]
+    public int spawnY;
+
+    [Tooltip("The minimum number of rooms from the player's start room that the exit to the next level will spawn.")]
     public int exitDistance = 1;
+
+    [Tooltip("Determines what approach the branching algorithm uses. See GenerateBranches() for details.")]
     public BranchMode branchMode;
+
     [Tooltip("The probability of a room to completely skip the branch algorithm.")]
     public float skipProbability;
+
     [Tooltip("The probability of a room to branch off in a given direction.")]
     public float branchProbability;
-    public Room roomPrefab;
-    public Tile tilePrefab;
-    public Tile wallTilePrefab;
-    public GameObject tileParentPrefab;
-    public GameObject wallTileParentPrefab;
-    public GameObject stairsPrefab;
-    public float decoChance, itemChance, enemyChance; //enemyChance + itemChance + decoChance + emptyChance = 100% 
-    public GameObject[] decoPrefabs;
-    public GameObject[] itemPrefabs;
-    public GameObject[] enemyPrefabs;
-    [Tooltip("Wall tile sprites with index based on adjacent tiles: 1 = top, 2 = right, 4 = bottom, 8 = left.")]
-    public Sprite[] wallSprites = new Sprite[16];
-    public Sprite[] floorSprites;
-    public float[] floorWeights; // Values must be entered in the same order as the sprites they will corrispond to
-    public Sprite doorSprite;
 
-    private Tile[,] tiles;
+    [Header("Tile Options")]
+    [Tooltip("The Tile object used to generate each tile in the grid.")]
+    public Tile tilePrefab;
+
+    [Tooltip("The list of possible sprites that may be assigned to floor tiles.")]
+    public Sprite[] tileSprites;
+
+    [Tooltip("The list of associated probabilities of each tile sprite being selected.")]
+    public float[] tileWeights;
+
+    [Tooltip("The parent object that should contain all the tile objects.")]
+    public GameObject tileParentPrefab;
+
+    [Tooltip("The Tile object used to generate each wall tile in the grid.")]
+    public Tile wallTilePrefab;
+
+    [Tooltip("Wall tile sprites with index based on adjacent walls: +1 = wall above, +2 = wall to right, +4 = wall below, +8 = wall to left. Example: 7 = adjacent walls above, right, and below.")]
+    public Sprite[] wallSprites = new Sprite[16];
+
+    [Tooltip("The parent object that should contain all the wall tile objects. NOTE: should have a CompositeShadowCaster2D component for efficiency.")]
+    public GameObject wallTileParentPrefab;
+
+    [Tooltip("The parent object that should contain all the door tile objects.")]
+    public GameObject doorTileParentPrefab;
+
+    [Header("Object Spawn Options")]
+    [Tooltip("The stairs object that is spawned in the exit room for moving between levels.")]
+    public TileObject stairsPrefab;
+
+    [Tooltip("The list of possible deco objects that may be spawned.")]
+    public TileObject[] decoPrefabs;
+
+    [Tooltip("The probability of a deco object being spawned at a given tile. Deco + Item + Enemy + Empty Chance = 100%")]
+    public float decoChance;
+
+    [Tooltip("The list of possible items that may be spawned.")]
+    public TileObject[] itemPrefabs;
+
+    [Tooltip("The probability of an item being spawned at a given tile. Deco + Item + Enemy + Empty Chance = 100%")]
+    public float itemChance;
+
+    [Tooltip("The list of possible enemies that may be spawned.")]
+    public TileObject[] enemyPrefabs;
+
+    [Tooltip("The probability of an enemy being spawned at a given tile. Deco + Item + Enemy + Empty Chance = 100%")]
+    public float enemyChance;
+
+    [HideInInspector]
+    public Tile[,] tiles;
 
     void Start()
     {
@@ -48,7 +100,6 @@ public class LevelController : MonoBehaviour
         instance = this;
 
         GenerateLevel();
-        SpawnPlayer();
     }
 
     ///<summary>Loads the first game level.</summary>
@@ -87,12 +138,12 @@ public class LevelController : MonoBehaviour
         // of rooms between which doorways should be located.
         List<(Vector2Int, Vector2Int)> doorways = new List<(Vector2Int, Vector2Int)>();
         
-        // Determine the player spawn point
-        Vector2Int spawnPoint = new Vector2Int(spawnX, spawnY);
-        // Generate an exit point at a sufficient distance from the spawn point
-        Vector2Int exitPoint = GenerateExit();
-        // Generate a random path between the spawn and exit points
-        List<Vector2Int> path = GeneratePath(spawnPoint, exitPoint);
+        // Determine the player spawn room
+        Vector2Int spawnRoom = new Vector2Int(spawnX, spawnY);
+        // Generate an exit room at a sufficient distance from the spawn room
+        Vector2Int exitRoom = GenerateExit();
+        // Generate a random path between the spawn and exit rooms
+        List<Vector2Int> path = GeneratePath(spawnRoom, exitRoom);
         // Get the doorways along the path to be added
         doorways.AddRange(GetPathDoors(path));
         // Generate branches off the main path and save the generated doorways
@@ -100,6 +151,11 @@ public class LevelController : MonoBehaviour
 
         InitializeTiles();
         InitializeDoors(doorways);
+        InitializeSprites();
+
+        SpawnObjects();
+        SpawnStairs(exitRoom);
+        SpawnPlayer(spawnRoom);
     }
 
     ///<summary>Initializes all of the tiles in the level.</summary>
@@ -111,16 +167,16 @@ public class LevelController : MonoBehaviour
         int numTilesY = (gridHeight * (roomSize + 1)) + 1;
         tiles = new Tile[numTilesX, numTilesY];
 
-        // A parent object for wall tiles used to optimize 2D shadowcasting
+        // Instantiate parent objects for tiles. Used to optimize 2D shadowcasting for walls
         GameObject tileParent = Instantiate(tileParentPrefab, Vector2.zero, Quaternion.identity) as GameObject;
         GameObject wallTileParent = Instantiate(wallTileParentPrefab, Vector2.zero, Quaternion.identity) as GameObject;
 
         // Initialize all the Tile objects in the grid
-        for (int y = 0; y < gridHeight; y++)
+        for (int y = 0; y < numTilesY; y++)
         {
-            for (int x = 0; x < gridWidth; x++)
+            for (int x = 0; x < numTilesX; x++)
             {
-                // Check if this is a wall tile with some math
+                // Check if this is a wall tile
                 bool isWall = x % (roomSize + 1) == 0 || y % (roomSize + 1) == 0;
 
                 // Setup object properties
@@ -140,6 +196,10 @@ public class LevelController : MonoBehaviour
     ///<summary>Initializes door tiles at the given doorway positions.</summary>
     private void InitializeDoors(List<(Vector2Int, Vector2Int)> doorways)
     {
+        // Instantiate parent objects for door tiles.
+        GameObject tileParent = Instantiate(doorTileParentPrefab, Vector2.zero, Quaternion.identity) as GameObject;
+        tileParent.name = "DoorTiles";
+
         // BEWARE: This gets pretty heavy into Vector math in the conversion
         // between room coordinates and tile coordinates. Each iteration of this
         // loop basically takes two rooms, locates the wall tiles between those
@@ -180,20 +240,142 @@ public class LevelController : MonoBehaviour
             Vector2Int currentTilePos = startDoorTilePos;
             for (int i = 0; i < doorSize; i++)
             {
-                tiles[currentTilePos.x, currentTilePos.y].isDoor = true;
-                tiles[currentTilePos.x, currentTilePos.y].isWall = false;
+                int x = currentTilePos.x;
+                int y = currentTilePos.y;
+                // Instantiate new tile object
+                Vector2 position = new Vector2(x, y);
+                Tile tile = Instantiate(tilePrefab, position, Quaternion.identity, tileParent.transform) as Tile;
+                tile.name = "DoorTile[" + x + ", " + y + "]";
+                tile.isDoor = true;
+                tiles[x, y] = tile;
                 currentTilePos += wallDirection;
             }
         }
     }
 
-    private void SpawnPlayer()
+    ///<summary>Initializes all tiles in the level to the appropriate sprites.</summary>
+    private void InitializeSprites()
     {
-        Room spawn = rooms[spawnX, spawnY];
-        Vector3 roomPos = spawn.transform.position;
-        Vector3 offset = new Vector2(roomSize * tileScale / 2, roomSize * tileScale / 2);
+        // The number of tiles is equal to the number of rooms * the number of tiles per room
+        // +1 for the wall tiles per room, +1 overall for the final set of wall tiles
+        int numTilesX = (gridWidth * (roomSize + 1)) + 1;
+        int numTilesY = (gridHeight * (roomSize + 1)) + 1;
+
+        // Set the sprites for each tile in the grid
+        for (int y = 0; y < numTilesY; y++)
+        {
+            for (int x = 0; x < numTilesX; x++)
+            {
+                // Set each sprite based on whether it's a wall tile or not
+                if (tiles[x, y].isWall)
+                {
+                    // Wall sprites are set based on what walls are adjacent to them.
+                    // These are assigned through a bytewise calculation:
+                    // Tile above = +1, right = +2, below = +4, left = +8
+                    // Then these are added together to get the appropriate sprite from an array.
+                    int spriteIndex = 0;
+                    spriteIndex += tiles[x, y+1].isWall ? 1 : 0;
+                    spriteIndex += tiles[x+1, y].isWall ? 2 : 0;
+                    spriteIndex += tiles[x, y-1].isWall ? 4 : 0;
+                    spriteIndex += tiles[x-1, y].isWall ? 8 : 0;
+                    tiles[x, y].GetComponent<SpriteRenderer>().sprite = wallSprites[spriteIndex];
+                }
+                else
+                {
+                    // Assign a random sprite to this tile based on the sprite weights
+                    float rand = Random.Range(0, 1.0f);
+                    float total = 0;
+                    for (int i = 0; i < tileSprites.Length; i++)
+                    {
+                        total += tileWeights[i];
+                        if (rand < total)
+                        {
+                            tiles[x, y].GetComponent<SpriteRenderer>().sprite = tileSprites[i];
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    ///<summary>Spawns enemies, deco, and items randomly throughout the generated level.</summary>
+    private void SpawnObjects()
+    {
+        // The number of tiles is equal to the number of rooms * the number of tiles per room
+        // +1 for the wall tiles per room, +1 overall for the final set of wall tiles
+        int numTilesX = (gridWidth * (roomSize + 1)) + 1;
+        int numTilesY = (gridHeight * (roomSize + 1)) + 1;
+
+        // For each tile that is not a wall tile or door tile, spawn objects
+        for (int y = 0; y < numTilesY; y++)
+        {
+            for (int x = 0; x < numTilesX; x++)
+            {
+                if (!tiles[x, y].isWall && !tiles[x, y].isDoor)
+                {
+                    TileObject[] prefabs = new TileObject[0];
+
+                    // Decide whether this tile should be an enemy, deco or item
+                    float rand = Random.Range(0, 1.0f);
+                    if (rand < enemyChance)
+                    {
+                        prefabs = enemyPrefabs;
+                    }
+                    else if (rand < enemyChance + decoChance)
+                    {
+                        prefabs = decoPrefabs;
+                    }
+                    else if (rand < enemyChance + decoChance + itemChance)
+                    {
+                        prefabs = itemPrefabs;
+                    }
+
+                    // Spawn the appropriate object
+                    int prefabIndex = Random.Range(0, prefabs.Length);
+                    Vector2 position = new Vector2(x, y);
+                    tiles[x, y].occupant = Instantiate(prefabs[prefabIndex], position, Quaternion.identity);
+                }
+            }
+        }
+    }
+
+    ///<summary>Spawns the stairs object randomly in the exit room.</summary>
+    private void SpawnStairs(Vector2Int exitRoom)
+    {
+        // Get the tile position of the bottom-right corner of the exit room
+        int exitRoomTileX = exitRoom.x * (roomSize + 1);
+        int exitRoomTileY = exitRoom.y * (roomSize + 1);
+
+        // Get a random tile position in the exit room to place the stairs
+        int randX = Random.Range(0, roomSize) + exitRoomTileX;
+        int randY = Random.Range(0, roomSize) + exitRoomTileY;
+
+        // Make sure we don't already have something on this tile
+        if (tiles[randX, randY].occupant != null)
+        {
+            tiles[randX, randY].occupant.Destroy();
+        }
+
+        // Spawn the stairs object
+        Vector2 position = new Vector2(randX, randY);
+        tiles[randX, randY].occupant = Instantiate(stairsPrefab, position, Quaternion.identity);
+    }
+
+    ///<summary>Spawns the player in the spawn room.</summary>
+    private void SpawnPlayer(Vector2Int spawnRoom)
+    {
+        // Get the tile position of the bottom-right corner of the spawn room
+        int spawnRoomTileX = spawnRoom.x * (roomSize + 1);
+        int spawnRoomTileY = spawnRoom.y * (roomSize + 1);
+
+        // Get the centermost tile position in the spawn room
+        int spawnTileX = spawnRoomTileX + (roomSize / 2);
+        int spawnTileY = spawnRoomTileY + (roomSize / 2);
+        
+        // Spawn the player
         Player player = GameObject.FindGameObjectWithTag("Player").GetComponent<Player>();
-        player.Spawn(spawn, roomPos + offset);
+        Vector2 position = new Vector2(spawnTileX, spawnTileY);
+        player.transform.position = position;
     }
 
     ///<summary>Returns a random exit point that is at least exitDistance grid squares away from the player spawn point.</summary>

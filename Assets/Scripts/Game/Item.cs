@@ -1,37 +1,38 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class Item : MonoBehaviour
 {
+    [Tooltip("The type of item.")]
     public ItemType itemType;
-    public Color idleColor;
-    public Color highlightColor;
+    
+    [Tooltip("The sprite used when the item is not highlighted.")]
+    public Sprite standardSprite;
 
-    public Tile occupiedTile;
+    [Tooltip("The sprite used when the item is highlighted.")]
+    public Sprite highlightedSprite;
+
+    [Tooltip("The distance from the player at which the item will become highlighted.")]
+    public float highlightDistance = 1f;
+
+    private Player player;
+    private SpriteRenderer spriteRenderer;
 
     void Start()
     {
-        GetComponent<SpriteRenderer>().color = idleColor;
+        spriteRenderer = GetComponent<SpriteRenderer>();
+        spriteRenderer.sprite = standardSprite;
     }
 
-    public void ClearOccupiedTile()
+    void Update()
     {
-        // broken?
-        if (occupiedTile != null)
+        if (player == null)
         {
-            occupiedTile.occupant = null;
+            player = GameObject.FindGameObjectWithTag("Player").GetComponent<Player>();
         }
-    }
 
-    public void SetOccupiedTile(Tile tile)
-    {
-        occupiedTile = tile;
-    }
-
-    public void SetAsTarget(bool isTarget)
-    {
-        Color currentColor = isTarget ? highlightColor : idleColor;
-        GetComponent<SpriteRenderer>().color = currentColor;
+        // Update the sprite based on the distance to the player
+        Vector2 dist = transform.position - player.transform.position;
+        bool inRange = dist.sqrMagnitude < highlightDistance;
+        spriteRenderer.sprite = inRange ? highlightedSprite : standardSprite;
     }
 }

@@ -162,7 +162,7 @@ public class Enemy : MonoBehaviour
         // if the player is out of range, set state back to patrol and return
 
         // check if the player has moved 
-        Tile playerTile = player.GetCurrentTile();
+        Tile playerTile = player.GetClosestTile();
         if (movePath == null || movePath.Count == 0)
         {
             movePath = GetPathToTarget(player.transform.position);

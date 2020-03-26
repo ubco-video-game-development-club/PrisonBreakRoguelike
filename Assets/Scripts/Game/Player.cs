@@ -32,7 +32,6 @@ public class Player : MonoBehaviour
     public string bombTargetTag = "Deco";
 
     private bool alive;
-    private Room currentRoom;
     private Item currentItemTarget;
     private int energyDrinkCount;
     private float energyDrinkDurationTimer;
@@ -48,24 +47,6 @@ public class Player : MonoBehaviour
     {
         alive = false;
         SceneManager.LoadSceneAsync("Lose");
-    }
-
-    public Tile GetCurrentTile()
-    {
-        Vector2Int gridPos = currentRoom.ToGridPosition(transform.position);
-        Vector2 tilePos = LevelController.RoundToTilePosition(transform.position);
-        return currentRoom.TileAt(gridPos.x, gridPos.y) ?? LevelController.instance.DoorTileAt(tilePos);
-    }
-
-    public Room GetCurrentRoom()
-    {
-        return currentRoom;
-    }
-
-    public void Spawn(Room spawn, Vector2 spawnPos)
-    {
-        transform.position = spawnPos;
-        currentRoom = spawn;
     }
 
     void Start()
@@ -86,29 +67,6 @@ public class Player : MonoBehaviour
         UpdateEnergyDrink();
         UpdateStunGun();
         UpdateBomb();
-    }
-
-    void OnTriggerEnter2D(Collider2D collider)
-    {
-        Room room;
-        if (collider.TryGetComponent<Room>(out room))
-        {
-            currentRoom = room;
-            Debug.Log("New room is: " + currentRoom.name);
-        }
-    }
-
-    private void UpdateVision()
-    {
-        // Light2D light2D = GetComponent<Light2D>();
-        // light2D.shapePath = new Vector3[visionRayCount];
-        // const float PI = Mathf.PI;
-        // for (float angle = 0; angle < 2*PI; angle += 2*PI/visionRayCount)
-        // {
-        //     Vector2 dir = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
-        //     RaycastHit2D hit = Physics2D.Raycast(transform.position, dir, visionRayDistance, visionLayer);
-        //     light2D.shapePath
-        // }
     }
 
     private void UpdateMovement()
