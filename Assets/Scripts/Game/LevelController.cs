@@ -125,6 +125,14 @@ public class LevelController : MonoBehaviour
         }
     }
 
+    ///<summary>Returns the grid position of the nearest Tile to the given world position.</summary>
+    public static Vector2Int WorldToTilePosition(Vector2 worldPosition)
+    {
+        int x = Mathf.RoundToInt(worldPosition.x);
+        int y = Mathf.RoundToInt(worldPosition.y);
+        return new Vector2Int(x, y);
+    }
+
     ///<summary>Returns the distance between two spaces in a grid as the x difference plus the y difference.</summary>
     public static int GridDistance(int x1, int y1, int x2, int y2)
     {
