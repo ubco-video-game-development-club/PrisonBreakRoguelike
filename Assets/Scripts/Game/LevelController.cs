@@ -125,6 +125,28 @@ public class LevelController : MonoBehaviour
         }
     }
 
+    ///<summary>Returns a square of tiles centered at the given position out to a given range.</summary>
+    public List<Tile> GetTileRange(Vector2Int gridPosition, int tileRange, bool excludeWalls = true)
+    {
+        List<Tile> result = new List<Tile>();
+        for (int y = gridPosition.y - tileRange; y <= gridPosition.y + tileRange; y++)
+        {
+            for (int x = gridPosition.x - tileRange; x <= gridPosition.x + tileRange; x++)
+            {
+                if (IsTileInBounds(x, y))
+                {
+                    Tile tile = tiles[x, y];
+                    // Check if we only want to get non-wall tiles
+                    if (!(excludeWalls && tile.isWall))
+                    {
+                        result.Add(tile);
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
     ///<summary>Returns the grid position of the nearest Tile to the given world position.</summary>
     public static Vector2Int WorldToTilePosition(Vector2 worldPosition)
     {
@@ -137,6 +159,12 @@ public class LevelController : MonoBehaviour
     public static int GridDistance(int x1, int y1, int x2, int y2)
     {
         return Mathf.Abs(x1 - x2) + Mathf.Abs(y1 - y2);
+    }
+
+    ///<summary>Checks if a tile is with the bounds of the grid.</summary>
+    public bool IsTileInBounds(int tileX, int tileY)
+    {
+        return tileX < tiles.GetLength(0) && tileX >= 0 && tileY < tiles.GetLength(1) && tileY >= 0;
     }
 
     ///<summary>Procedurally generates the game level.</summary>
@@ -539,30 +567,30 @@ public class LevelController : MonoBehaviour
         // Generate a list of valid adjacent rooms
         List<Vector2Int> adjacentRooms = new List<Vector2Int>();
         Vector2Int right = room + Vector2Int.right;
-        if (IsInBounds(right) && !visited[right.x, right.y])
+        if (IsRoomInBounds(right) && !visited[right.x, right.y])
         {
             adjacentRooms.Add(right);
         }
         Vector2Int left = room + Vector2Int.left;
-        if (IsInBounds(left) && !visited[left.x, left.y])
+        if (IsRoomInBounds(left) && !visited[left.x, left.y])
         {
             adjacentRooms.Add(left);
         }
         Vector2Int top = room + Vector2Int.up;
-        if (IsInBounds(top) && !visited[top.x, top.y])
+        if (IsRoomInBounds(top) && !visited[top.x, top.y])
         {
             adjacentRooms.Add(top);
         }
         Vector2Int bottom = room + Vector2Int.down;
-        if (IsInBounds(bottom) && !visited[bottom.x, bottom.y])
+        if (IsRoomInBounds(bottom) && !visited[bottom.x, bottom.y])
         {
             adjacentRooms.Add(bottom);
         }
         return adjacentRooms;
     }
 
-    ///<summary>Checks if a grid position is with the bounds of the grid.</summary>
-    private bool IsInBounds(Vector2Int room)
+    ///<summary>Checks if a room is with the bounds of the grid.</summary>
+    private bool IsRoomInBounds(Vector2Int room)
     {
         return room.x < gridWidth && room.x >= 0 && 
             room.y < gridHeight && room.y >= 0;

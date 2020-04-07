@@ -4,15 +4,15 @@ using UnityEngine.SceneManagement;
 
 public class Player : MonoBehaviour
 {
-    [Header("Movement")]
+    [Header("Movement Settings")]
     [Tooltip("The movement speed of the player in units per second.")]
     public float speed = 1f;
 
-    [Header("Interaction")]
+    [Header("Interaction Settings")]
     [Tooltip("The max distance the player can be from an item to pick it up.")]
     public float pickupDistance = 1f;
 
-    [Header("Energy Drink")]
+    [Header("Energy Drink Settings")]
     [Tooltip("The UI element for the energy drink cooldown.")]
     public ItemDisplay energyDrinkDisplay;
     [Tooltip("The cooldown time between energy drink uses.")]
@@ -22,7 +22,7 @@ public class Player : MonoBehaviour
     [Tooltip("The movement speed of the player while the energy drink is active.")]
     public float energyDrinkSpeed = 1f;
 
-    [Header("Stun Gun")]
+    [Header("Stun Gun Settings")]
     [Tooltip("The UI element for the stun gun cooldown.")]
     public ItemDisplay stunGunDisplay;
     [Tooltip("The cooldown time between stun gun uses.")]
@@ -36,7 +36,7 @@ public class Player : MonoBehaviour
     [Tooltip("The GameObjecct tag of allowed stun gun targets.")]
     public string stunGunTargetTag = "Enemy";
 
-    [Header("Bomb")]
+    [Header("Bomb Settings")]
     [Tooltip("The UI element for the bomb cooldown.")]
     public ItemDisplay bombDisplay;
     [Tooltip("The cooldown time between bomb uses.")]
@@ -254,34 +254,32 @@ public class Player : MonoBehaviour
     ///<summary>Returns the closest item to the player or null if no items were found.</summary>
     private Item GetClosestItem()
     {
-        // Get the grid position of the player
+        // Get all tiles within (pickup distance + 1) of the player's position
         Vector2Int gridPos = LevelController.WorldToTilePosition(transform.position);
-        
-        Item item = null;
-        float shortestDist = float.MaxValue;
-
-        // Check all tiles within (pickup distance + 1) of the player's position
         int maxDist = Mathf.CeilToInt(pickupDistance) + 1;
-        for (int y = gridPos.y - maxDist; y <= gridPos.y + maxDist; y++)
+        List<Tile> tiles = LevelController.instance.GetTileRange(gridPos, maxDist);
+        
+        // Get the closest item in the range of tiles
+        Item closestItem = null;
+        float shortestDist = float.MaxValue;
+        foreach (Tile tile in tiles)
         {
-            for (int x = gridPos.x - maxDist; x <= gridPos.x + maxDist; x++)
-            {
-                TileObject obj = LevelController.instance.tiles[x, y].occupant;
+            TileObject obj = tile.occupant;
 
-                Item nearbyItem;
-                if (obj.TryGetComponent<Item>(out nearbyItem))
+            // Check if there is an item on this tile
+            Item item;
+            if (obj != null && obj.TryGetComponent<Item>(out item))
+            {
+                float dist = Vector2.Distance(gridPos, item.transform.position);
+                if (dist < shortestDist)
                 {
-                    float dist = Vector2.Distance(gridPos, nearbyItem.transform.position);
-                    if (dist < shortestDist)
-                    {
-                        item = nearbyItem;
-                        shortestDist = dist;
-                    }
+                    closestItem = item;
+                    shortestDist = dist;
                 }
             }
         }
 
-        return item;
+        return closestItem;
     }
 }
 

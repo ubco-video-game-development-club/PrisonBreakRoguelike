@@ -1,8 +1,12 @@
 ATTACK LOOP
-Check if the player is out of follow range OR the player is not within our grid range
+Check if the player is out of follow range
   [True]
   Set state to patrol
   Return
+Check if player has moved too far from prev path position
+  [True]
+  Adjust the path for the new end position
+
 Check if we can see the player
   [True]
   Set target to player position
