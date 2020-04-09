@@ -83,7 +83,7 @@ public class LevelController : MonoBehaviour
     public float itemChance;
 
     [Tooltip("The list of possible enemies that may be spawned.")]
-    public TileObject[] enemyPrefabs;
+    public Enemy[] enemyPrefabs;
 
     [Tooltip("The probability of an enemy being spawned at a given tile. Deco + Item + Enemy + Empty Chance = 100%")]
     public float enemyChance;
@@ -310,10 +310,10 @@ public class LevelController : MonoBehaviour
                     // Tile above = +1, right = +2, below = +4, left = +8
                     // Then these are added together to get the appropriate sprite from an array.
                     int spriteIndex = 0;
-                    spriteIndex += tiles[x, y+1].isWall ? 1 : 0;
-                    spriteIndex += tiles[x+1, y].isWall ? 2 : 0;
-                    spriteIndex += tiles[x, y-1].isWall ? 4 : 0;
-                    spriteIndex += tiles[x-1, y].isWall ? 8 : 0;
+                    spriteIndex += IsTileInBounds(x, y+1) && tiles[x, y+1].isWall ? 1 : 0;
+                    spriteIndex += IsTileInBounds(x+1, y) && tiles[x+1, y].isWall ? 2 : 0;
+                    spriteIndex += IsTileInBounds(x, y-1) && tiles[x, y-1].isWall ? 4 : 0;
+                    spriteIndex += IsTileInBounds(x-1, y) && tiles[x-1, y].isWall ? 8 : 0;
                     tiles[x, y].GetComponent<SpriteRenderer>().sprite = wallSprites[spriteIndex];
                 }
                 else
@@ -349,27 +349,26 @@ public class LevelController : MonoBehaviour
             {
                 if (!tiles[x, y].isWall && !tiles[x, y].isDoor)
                 {
-                    TileObject[] prefabs = new TileObject[0];
-
                     // Decide whether this tile should be an enemy, deco or item
                     float rand = Random.Range(0, 1.0f);
                     if (rand < enemyChance)
                     {
-                        prefabs = enemyPrefabs;
+                        // Spawn an enemy object
+                        int enemyIndex = Random.Range(0, enemyPrefabs.Length);
+                        Instantiate(enemyPrefabs[enemyIndex], new Vector2(x, y), Quaternion.identity);
                     }
                     else if (rand < enemyChance + decoChance)
                     {
-                        prefabs = decoPrefabs;
+                        // Spawn a deco object
+                        int decoIndex = Random.Range(0, decoPrefabs.Length);
+                        tiles[x, y].occupant = Instantiate(decoPrefabs[decoIndex], new Vector2(x, y), Quaternion.identity);
                     }
                     else if (rand < enemyChance + decoChance + itemChance)
                     {
-                        prefabs = itemPrefabs;
+                        // Spawn an item object
+                        int itemIndex = Random.Range(0, itemPrefabs.Length);
+                        tiles[x, y].occupant = Instantiate(itemPrefabs[itemIndex], new Vector2(x, y), Quaternion.identity);
                     }
-
-                    // Spawn the appropriate object
-                    int prefabIndex = Random.Range(0, prefabs.Length);
-                    Vector2 position = new Vector2(x, y);
-                    tiles[x, y].occupant = Instantiate(prefabs[prefabIndex], position, Quaternion.identity);
                 }
             }
         }
@@ -412,6 +411,7 @@ public class LevelController : MonoBehaviour
         Player player = GameObject.FindGameObjectWithTag("Player").GetComponent<Player>();
         Vector2 position = new Vector2(spawnTileX, spawnTileY);
         player.transform.position = position;
+        player.Spawn();
     }
 
     ///<summary>Returns a random exit point that is at least exitDistance grid squares away from the player spawn point.</summary>
@@ -463,7 +463,7 @@ public class LevelController : MonoBehaviour
                 current = GetRandomAdjacentRoom(current, visited);
 
                 // No more adjacent rooms - we're stuck! Break and try again.
-                if (current == null)
+                if (current.x == -1 && current.y == -1)
                 {
                     path = null;
                     break;
@@ -553,12 +553,17 @@ public class LevelController : MonoBehaviour
         return branches;
     }
 
-    ///<summary>Returns a random adjacent grid position that has not been visited yet.</summary>
+    ///<summary>Returns a random adjacent grid position that has not been visited yet or (-1,-1) if none was found.</summary>
     private Vector2Int GetRandomAdjacentRoom(Vector2Int room, bool[,] visited)
     {
+        Vector2Int result = new Vector2Int(-1, -1);
         List<Vector2Int> adjacentRooms = GetAdjacentRooms(room, visited);
-        int rand = Random.Range(0, adjacentRooms.Count);
-        return adjacentRooms[rand];
+        if (adjacentRooms.Count > 0)
+        {
+            int rand = Random.Range(0, adjacentRooms.Count);
+            result = adjacentRooms[rand];
+        }
+        return result;
     }
 
     ///<summary>Returns a list of adjacent grid positions that have not been visited yet.</summary>

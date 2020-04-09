@@ -423,40 +423,45 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 42ed5b385a841b3468b3bddf21351223, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  numLevels: 3
-  width: 3
-  height: 3
+  numLevels: 2
+  gridWidth: 4
+  gridHeight: 4
   roomSize: 10
-  tileScale: 1
-  spawnX: 2
-  spawnY: 2
-  exitDistance: 2
+  doorSize: 3
+  spawnX: 0
+  spawnY: 0
+  exitDistance: 3
   branchMode: 0
   skipProbability: 0.2
   branchProbability: 0.5
-  roomPrefab: {fileID: 494678769521013170, guid: d6c8a8f4161eff34c9baa15a0277a492,
-    type: 3}
   tilePrefab: {fileID: 2052754569327910191, guid: 9c18b993739aee0469e00a424d51c008,
+    type: 3}
+  tileSprites:
+  - {fileID: -657184601136422320, guid: 29af5ff47191d73449b209aabdb148f6, type: 3}
+  - {fileID: 2040372132977131867, guid: 29af5ff47191d73449b209aabdb148f6, type: 3}
+  - {fileID: -4166097776838399288, guid: 29af5ff47191d73449b209aabdb148f6, type: 3}
+  - {fileID: -7025652427051960046, guid: 29af5ff47191d73449b209aabdb148f6, type: 3}
+  - {fileID: 6905831066398402554, guid: 29af5ff47191d73449b209aabdb148f6, type: 3}
+  - {fileID: 1726061256476602623, guid: 29af5ff47191d73449b209aabdb148f6, type: 3}
+  - {fileID: -7260310062464109513, guid: 29af5ff47191d73449b209aabdb148f6, type: 3}
+  - {fileID: -6631909920601613697, guid: 29af5ff47191d73449b209aabdb148f6, type: 3}
+  - {fileID: -8081505355173112674, guid: 29af5ff47191d73449b209aabdb148f6, type: 3}
+  - {fileID: 5688402823894778135, guid: 29af5ff47191d73449b209aabdb148f6, type: 3}
+  tileWeights:
+  - 0.15
+  - 0.15
+  - 0.15
+  - 0.15
+  - 0.15
+  - 0.1
+  - 0.03
+  - 0.05
+  - 0.03
+  - 0.04
+  tileParentPrefab: {fileID: 1235453390238326963, guid: c3060cc5ee92d2348a1537e4b6260959,
     type: 3}
   wallTilePrefab: {fileID: 1821460673159588804, guid: 8aae42b0e2112b343a4351d99ef39009,
     type: 3}
-  wallParentPrefab: {fileID: 7985760233799068516, guid: b144dd0d7144bd54b8a153017c79b370,
-    type: 3}
-  stairsPrefab: {fileID: 1374721802017977336, guid: 548facf9da703134894b9768d0094f1a,
-    type: 3}
-  decoChance: 0.05
-  itemChance: 0.02
-  enemyChance: 0.001
-  decoPrefabs:
-  - {fileID: 1851285876764668049, guid: af29998537a15024aaeeac7710a3369a, type: 3}
-  - {fileID: 1851285876764668049, guid: af29998537a15024aaeeac7710a3369a, type: 3}
-  itemPrefabs:
-  - {fileID: 7445061827423248591, guid: 0eb6b8ccec5fb4b49b473064d2c14e08, type: 3}
-  - {fileID: 1269908224649225357, guid: a86b4b292059cd940a4bc54763ce983d, type: 3}
-  - {fileID: 6966627251446506858, guid: 728ded94480b8924fb6386a85a7ceced, type: 3}
-  enemyPrefabs:
-  - {fileID: 4230772297360717752, guid: 97d0ef8ad611c2e4194aa4a28d57fb42, type: 3}
-  - {fileID: 4230772297360717752, guid: 97d0ef8ad611c2e4194aa4a28d57fb42, type: 3}
   wallSprites:
   - {fileID: 0}
   - {fileID: 3282540719923212710, guid: d44e825f04b130a4f940147a725e8782, type: 3}
@@ -474,30 +479,23 @@ MonoBehaviour:
   - {fileID: -1819741813952534947, guid: d44e825f04b130a4f940147a725e8782, type: 3}
   - {fileID: -5666112366125880409, guid: d44e825f04b130a4f940147a725e8782, type: 3}
   - {fileID: -1488151570027504278, guid: d44e825f04b130a4f940147a725e8782, type: 3}
-  floorSprites:
-  - {fileID: -657184601136422320, guid: 29af5ff47191d73449b209aabdb148f6, type: 3}
-  - {fileID: 2040372132977131867, guid: 29af5ff47191d73449b209aabdb148f6, type: 3}
-  - {fileID: -4166097776838399288, guid: 29af5ff47191d73449b209aabdb148f6, type: 3}
-  - {fileID: -7025652427051960046, guid: 29af5ff47191d73449b209aabdb148f6, type: 3}
-  - {fileID: 6905831066398402554, guid: 29af5ff47191d73449b209aabdb148f6, type: 3}
-  - {fileID: 1726061256476602623, guid: 29af5ff47191d73449b209aabdb148f6, type: 3}
-  - {fileID: -7260310062464109513, guid: 29af5ff47191d73449b209aabdb148f6, type: 3}
-  - {fileID: -6631909920601613697, guid: 29af5ff47191d73449b209aabdb148f6, type: 3}
-  - {fileID: -8081505355173112674, guid: 29af5ff47191d73449b209aabdb148f6, type: 3}
-  - {fileID: 5688402823894778135, guid: 29af5ff47191d73449b209aabdb148f6, type: 3}
-  floorWeights:
-  - 0.5
-  - 0.45
-  - 0.4
-  - 0.35
-  - 0.3
-  - 0.25
-  - 0.1
-  - 0.1
-  - 0.05
-  - 0.01
-  doorSprite: {fileID: -657184601136422320, guid: 29af5ff47191d73449b209aabdb148f6,
+  wallTileParentPrefab: {fileID: 7985760233799068516, guid: b144dd0d7144bd54b8a153017c79b370,
     type: 3}
+  doorTileParentPrefab: {fileID: 3993391545055867745, guid: 2705874d350853647bbc8271c816d34a,
+    type: 3}
+  stairsPrefab: {fileID: 5129285869571819939, guid: 548facf9da703134894b9768d0094f1a,
+    type: 3}
+  decoPrefabs:
+  - {fileID: 8794541992642335959, guid: af29998537a15024aaeeac7710a3369a, type: 3}
+  decoChance: 0.2
+  itemPrefabs:
+  - {fileID: 1992829510337875050, guid: 728ded94480b8924fb6386a85a7ceced, type: 3}
+  - {fileID: 2043421726309517775, guid: 0eb6b8ccec5fb4b49b473064d2c14e08, type: 3}
+  - {fileID: 7680330336807210381, guid: a86b4b292059cd940a4bc54763ce983d, type: 3}
+  itemChance: 0.05
+  enemyPrefabs:
+  - {fileID: -4778358635996450291, guid: 97d0ef8ad611c2e4194aa4a28d57fb42, type: 3}
+  enemyChance: 0.01
 --- !u!4 &1588575893
 Transform:
   m_ObjectHideFlags: 0
@@ -655,31 +653,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 18f5135e644305f4a8cfb1a8380be3fb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!1 &1664398248 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 9131571438211682556, guid: 7215d388d4b77234fab5c962108a1dab,
-    type: 3}
-  m_PrefabInstance: {fileID: 9131571439808411786}
-  m_PrefabAsset: {fileID: 0}
---- !u!95 &1664398255
-Animator:
-  serializedVersion: 3
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1664398248}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 4fed65f514d993a428b688d50974c8c8, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorControllerStateOnDisable: 0
 --- !u!1 &1665943088
 GameObject:
   m_ObjectHideFlags: 0
@@ -1080,10 +1053,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 953410075, guid: 7215d388d4b77234fab5c962108a1dab, type: 3}
-      propertyPath: m_Enabled
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 9131571438211682546, guid: 7215d388d4b77234fab5c962108a1dab,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -1158,42 +1127,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Player
-      objectReference: {fileID: 0}
-    - target: {fileID: 9131571438211682557, guid: 7215d388d4b77234fab5c962108a1dab,
-        type: 3}
-      propertyPath: m_Sprite
-      value: 
-      objectReference: {fileID: 21300000, guid: 7f128ff0f867b0e40bb1fc594b9a48ce,
-        type: 3}
-    - target: {fileID: 9131571438211682557, guid: 7215d388d4b77234fab5c962108a1dab,
-        type: 3}
-      propertyPath: m_Color.r
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 9131571438211682557, guid: 7215d388d4b77234fab5c962108a1dab,
-        type: 3}
-      propertyPath: m_Color.g
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 9131571438211682557, guid: 7215d388d4b77234fab5c962108a1dab,
-        type: 3}
-      propertyPath: m_Color.b
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 9131571438211682557, guid: 7215d388d4b77234fab5c962108a1dab,
-        type: 3}
-      propertyPath: m_Color.a
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 9131571438211682557, guid: 7215d388d4b77234fab5c962108a1dab,
-        type: 3}
-      propertyPath: m_Size.x
-      value: 0.64
-      objectReference: {fileID: 0}
-    - target: {fileID: 9131571438211682557, guid: 7215d388d4b77234fab5c962108a1dab,
-        type: 3}
-      propertyPath: m_Size.y
-      value: 0.64
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7215d388d4b77234fab5c962108a1dab, type: 3}

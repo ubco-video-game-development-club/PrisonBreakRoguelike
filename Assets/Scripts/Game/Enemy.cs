@@ -23,6 +23,8 @@ public class Enemy : MonoBehaviour
     public float minIdleDuration = 1f;
     [Tooltip("The maximum number of seconds the enemy will idle between patrol movements.")]
     public float maxIdleDuration = 1f;
+    [Tooltip("The distance the player must move from their previous position for the enemy path to be re-calculated.")]
+    public float pathAdjustDistance = 1f;
 
     [Header("Detection Settings")]
     [Tooltip("The range of the frontal vision cone used to detect the player.")]
@@ -37,11 +39,12 @@ public class Enemy : MonoBehaviour
     private EnemyState state;
     private EnemyPath path;
     private Vector2 direction;
+    private float speed = 1f;
     private float stunTimer = 0f;
     private float idleTimer = 0f;
     private Player player;
 
-    ///<summary>Set this Enemy to the Stunned state for stunDuration seconds.</summary>
+    ///<summary>Sets this Enemy to the Stunned state for stunDuration seconds.</summary>
     public void Stun(float stunDuration)
     {
         SetState(EnemyState.Stunned);
@@ -51,69 +54,21 @@ public class Enemy : MonoBehaviour
     void Start()
     {
         player = GameObject.FindGameObjectWithTag("Player").GetComponent<Player>();
-        state = EnemyState.Idle;
+        path = new EnemyPath();
+        SetState(EnemyState.Idle);
     }
 
     void Update()
     {
         LookForPlayer();
 
+        // Update the enemy based on the current state
         switch (state)
         {
-            case EnemyState.Patrol:
-            {
-                bool reachedTarget = MoveToTarget();
-                if (reachedTarget)
-                {
-                    bool reachedEnd = path.TargetNext();
-                    if (reachedEnd)
-                    {
-                        SetState(EnemyState.Idle);
-                    }
-                }
-                break;
-            }
-            case EnemyState.Idle:
-            {
-                idleTimer -= Time.deltaTime;
-                if (idleTimer <= 0)
-                {
-                    SetState(EnemyState.Patrol);
-                }
-                break;
-            }
-            case EnemyState.Attack:
-            {
-                // Check if the player is out of follow range
-                float distToPlayer = Vector2.Distance(transform.position, player.transform.position);
-                if (distToPlayer > followDistance)
-                {
-                    // Set state to patrol
-                    SetState(EnemyState.Patrol);
-                }
-
-                // Raycast to the player
-                Vector3 dir = (player.transform.position - transform.position).normalized;
-                float dist = Vector2.Distance(player.transform.position, transform.position);
-                RaycastHit2D hit = Physics2D.Raycast(transform.position + dir, dir, dist);
-
-                // Check if the player is visible 
-                Player p;
-                if (hit.collider.TryGetComponent<Player>(out p))
-                {
-                    
-                }
-                break;
-            }
-            case EnemyState.Stunned:
-            {
-                stunTimer -= Time.deltaTime;
-                if (stunTimer <= 0)
-                {
-                    SetState(EnemyState.Patrol);
-                }
-                break;
-            }
+            case EnemyState.Patrol: Patrol(); break;
+            case EnemyState.Idle: Idle(); break;
+            case EnemyState.Attack: Attack(); break;
+            case EnemyState.Stunned: Stunned(); break;
         }
     }
 
@@ -126,7 +81,7 @@ public class Enemy : MonoBehaviour
         }
     }
 
-    ///<summary>Set the state of the enemy and run any code that should happen on the given state change.</summary>
+    ///<summary>Sets the state of the enemy and runs any code that should happen on the given state change.</summary>
     private void SetState(EnemyState enemyState)
     {
         state = enemyState;
@@ -134,88 +89,171 @@ public class Enemy : MonoBehaviour
         {
             case EnemyState.Patrol:
             {
-                target = GetRandomPatrolTarget();
+                GeneratePatrolPath();
+                speed = patrolSpeed;
                 break;
             }
             case EnemyState.Idle:
             {
-                
+                StartIdleTimer();
                 break;
             }
             case EnemyState.Attack:
             {
-                
-                break;
-            }
-            case EnemyState.Stunned:
-            {
-                
+                GenerateAttackPath();
+                speed = attackSpeed;
                 break;
             }
         }
     }
 
-    ///<summary>Check to see if the player has been detected by the enemy's vision or hearing.</summary>
+    ///<summary>Moves the enemy along the current path. Returns true if the enemy reached the end of the path.</summary>
+    private bool MoveAlongPath()
+    {
+        bool endReached = false;
+
+        // Get the current path target
+        Vector3 target = path.Current();
+
+        // Move the enemy towards the target based on their current speed
+        transform.position = Vector2.MoveTowards(transform.position, target, speed);
+
+        // Update the current direction
+        direction = (target - transform.position).normalized;
+
+        // If the enemy has reached the target, move to the next target along the path
+        float distToTarget = Vector2.Distance(transform.position, target);
+        if (distToTarget < 0.1f)
+        {
+            endReached = path.TargetNext();
+        }
+
+        return endReached;
+    }
+
+    ///<summary>Checks to see if the player has been detected by the enemy's vision or hearing.</summary>
     private void LookForPlayer()
     {
+        // Don't make any detection checks if the enemy is stunned
+        if (state == EnemyState.Stunned)
+        {
+            return;
+        }
+
+        // Check if the enemy heard the player based on the hearing radius
         float distToPlayer = Vector2.Distance(transform.position, player.transform.position);
         bool heardPlayer = distToPlayer < hearingRadius;
 
+        // Check if the enemy saw the player based on the frontal vision angle and distance
         Vector2 dirToPlayer = player.transform.position - transform.position;
         float angleToPlayer = Vector2.Angle(dirToPlayer, direction);
         bool sawPlayer = angleToPlayer < visionArcAngle && distToPlayer < visionDistance;
 
+        // If the player was detected, set the state to attack
         if (heardPlayer || sawPlayer)
         {
             state = EnemyState.Attack;
         }
     }
 
-    ///<summary>Returns a random nearby position to move towards.</summary>
-    private Vector2 GetRandomPatrolTarget()
+    ///<summary>Generates a path to a random nearby tile position and sets it as the current path.</summary>
+    private void GeneratePatrolPath()
     {
         // Get all tiles within maxPatrolDistance of the enemy's position
         Vector2Int gridPos = LevelController.WorldToTilePosition(transform.position);
         List<Tile> tiles = LevelController.instance.GetTileRange(gridPos, maxPatrolDistance);
-        // Get a random tile from the list and return its position
-        return tiles[Random.Range(0, tiles.Count)].transform.position;
+
+        // Try generating paths to nearby tiles until we find one with a valid path
+        bool foundPath = false;
+        while (!foundPath)
+        {
+            // Get a random tile from the list and return its position
+            Vector2 randPos = tiles[Random.Range(0, tiles.Count)].transform.position;
+
+            // Generate a new path to the random tile position and set it as the current path
+            foundPath = path.GeneratePath(transform.position, randPos);
+        }
     }
 
-    ///<summary>Follows the player using the pathfinding algorithm and attempts to catch them.</summary>
+    ///<summary>Sets the idle timer to a random value between min and max idle duration.</summary>
+    private void StartIdleTimer()
+    {
+        idleTimer = Random.Range(minIdleDuration, maxIdleDuration);
+    }
+
+    ///<summary>Generates a path to the current player position and sets it as the current path.</summary>
+    private void GenerateAttackPath()
+    {
+        // Generate a new path to the player position and set it as the current path
+        bool foundPath = path.GeneratePath(transform.position, player.transform.position);
+
+        // If we failed to find the player, just go back to patrolling
+        if (!foundPath)
+        {
+            SetState(EnemyState.Patrol);
+        }
+    }
+
+    ///<summary>Update function for the Attack state.</summary>
     private void Attack()
     {
-        List<Vector2> movePath = new List<Vector2>();
-        // if the player is out of range, set state back to patrol and return
-
-        // check if the player has moved 
-        Tile playerTile = player.GetClosestTile();
-        if (movePath == null || movePath.Count == 0)
+        // Set state to patrol if the player is out of follow range
+        float distToPlayer = Vector2.Distance(transform.position, player.transform.position);
+        if (distToPlayer > followDistance)
         {
-            movePath = GetPathToTarget(player.transform.position);
-            if (movePath == null || movePath.Count == 0)
-            {
-                state = EnemyState.Patrol;
-                return;
-            }
-        }
-        else
-        {
-            Vector2 playerPos = playerTile.transform.position;
-            Vector2 endPos = movePath[movePath.Count - 1];
-            if (Vector2.Distance(playerPos, endPos) > 1)
-            {
-                movePath = GetPathToTarget(player.transform.position);
-            }
+            SetState(EnemyState.Patrol);
         }
 
-        Vector2 nextPos = movePath[0];
-        tempPos = nextPos;
-        float speed = attackSpeed * Time.deltaTime;
-        transform.position = Vector2.MoveTowards(transform.position, nextPos, speed);
-        
-        if (Vector2.Distance(transform.position, nextPos) < Mathf.Epsilon)
+        // Adjust path if the player has moved too far from their previous position
+        float distToPrev = Vector2.Distance(path.End(), player.transform.position);
+        if (distToPrev > pathAdjustDistance)
         {
-            movePath.RemoveAt(0);
+            path.AdjustEndpoint(player.transform.position);
+        }
+
+        // Move along the path to the player
+        bool reachedEnd = MoveAlongPath();
+        if (reachedEnd)
+        {
+            // If for some weird reason we reach the end of the path
+            // and we haven't hit the player, go back to patrolling
+            SetState(EnemyState.Patrol);
+        }
+    }
+
+    ///<summary>Update function for the Patrol state.</summary>
+    private void Patrol()
+    {
+        // Move along the path to our current patrol target
+        bool reachedEnd = MoveAlongPath();
+        if (reachedEnd)
+        {
+            // Go back to idle once we reach the target
+            SetState(EnemyState.Idle);
+        }
+    }
+
+    ///<summary>Update function for the Idle state.</summary>
+    private void Idle()
+    {
+        // Update the idle timer
+        idleTimer -= Time.deltaTime;
+        if (idleTimer <= 0)
+        {
+            // Go back to patrol once we finish idling
+            SetState(EnemyState.Patrol);
+        }
+    }
+
+    ///<summary>Update function for the Stunned state.</summary>
+    private void Stunned()
+    {
+        // Update the stunned timer
+        stunTimer -= Time.deltaTime;
+        if (stunTimer <= 0)
+        {
+            // Go back to patrol once we stop being stunned
+            SetState(EnemyState.Patrol);
         }
     }
 
@@ -223,28 +261,47 @@ public class Enemy : MonoBehaviour
     {
         public List<Vector2Int> tilePath;
         public List<Vector2> optimizedPath;
-        private int currentIndex = 0;
+        private int targetIndex = 0;
 
-        public EnemyPath(Vector2 start, Vector2 end)
+        public EnemyPath()
+        {
+            tilePath = new List<Vector2Int>();
+            optimizedPath = new List<Vector2>();
+        }
+
+        ///<summary>Generates a new path between the given start and end positions. Returns true if a path was found.</summary>
+        public bool GeneratePath(Vector2 start, Vector2 end)
         {
             bool pathFound = CalculatePath(start, end);
             if (pathFound)
             {
                 OptimizePath();
+                targetIndex = 0;
             }
+            return pathFound;
         }
 
         ///<summary>Returns the current target position along the path. Change to the next target by calling TargetNext().</summary>
         public Vector2 Current()
         {
-            return optimizedPath[currentIndex];
+            if (targetIndex >= optimizedPath.Count)
+            {
+                Debug.Log("the hell?");
+            }
+            return optimizedPath[targetIndex];
+        }
+
+        ///<summary>Returns the end point of the path.</summary>
+        public Vector2 End()
+        {
+            return optimizedPath[optimizedPath.Count - 1];
         }
 
         ///<summary>Sets the current target to the next point on the path. Returns true if the end was reached.</summary>
         public bool TargetNext()
         {
-            currentIndex++;
-            return currentIndex >= optimizedPath.Count;
+            targetIndex++;
+            return targetIndex >= optimizedPath.Count;
         }
 
         ///<summary>Recalculates the current path efficiently based on a slightly adjusted endpoint.</summary>
@@ -252,7 +309,8 @@ public class Enemy : MonoBehaviour
         {
             // Draw a new path from the current endpoint to the new endpoint
             Vector2Int currentEnd = tilePath[tilePath.Count - 1];
-            EnemyPath addon = new EnemyPath(currentEnd, adjustedEnd);
+            EnemyPath addon = new EnemyPath();
+            addon.GeneratePath(currentEnd, adjustedEnd);
 
             // Add the new path to the end of our current path
             tilePath.AddRange(addon.tilePath);
@@ -264,6 +322,8 @@ public class Enemy : MonoBehaviour
         ///<summary>Calculates the shortest path from start to end. Returns a success boolean for whether a path was found.</summary>
         private bool CalculatePath(Vector2 start, Vector2 end)
         {
+            tilePath = new List<Vector2Int>();
+
             // Success boolean
             bool success = false;
 
@@ -302,7 +362,7 @@ public class Enemy : MonoBehaviour
                     break;
                 }
 
-                // Add adjacent tile positions to the queue
+                // Add adjacent tile positions to the queue and pathmap
                 for (float angle = 0; angle < 2 * Mathf.PI; angle += Mathf.PI / 2)
                 {
                     // Get the axis-aligned direction determined by the current 90 degree angle
@@ -320,6 +380,8 @@ public class Enemy : MonoBehaviour
                         {
                             // Add this tile position to the queue
                             queue.Add(adj, Vector2.Distance(adj, endTilePos));
+                            // Add this tile position to the pathmap
+                            pathMap.Add(adj, currentTilePos);
                         }
                     }
                 }
@@ -338,8 +400,8 @@ public class Enemy : MonoBehaviour
 
             int currentIndex = 0;
             int lastKeyIndex = 0;
-            // While current index is less than path length
-            while (currentIndex < tilePath.Count)
+            // While current index is less than path length - 1
+            while (currentIndex < tilePath.Count - 1)
             {
                 Vector2 currentPoint = tilePath[currentIndex];
                 Vector2 lastKeyPoint = tilePath[lastKeyIndex];
@@ -362,158 +424,10 @@ public class Enemy : MonoBehaviour
                 // Move to the next point
                 currentIndex++;
             }
+            
+            // Add the final point of the path
+            optimizedPath.Add(tilePath[tilePath.Count - 1]);
         }
-    }
-
-
-
-
-
-
-
-    ///<summary>
-    /// Returns true if the target is within followDistance and is in the same room or an adjacent room to the Enemy.
-    ///</summary>
-    private bool IsTargetInRange(Vector2 target)
-    {
-        return true;
-    }
-
-    ///<summary>
-    /// Returns true if the Enemy has line of sight to the player. Obstacles and walls block line of sight.
-    ///</summary>
-    private bool IsTargetVisible(Vector2 target)
-    {
-        return true;
-    }
-
-    ///<summary>
-    /// Returns true if the Enemy already has a valid path to the player and the player has not moved too far from their previous position.
-    ///</summary>
-    private bool HasPathToTarget(Vector2 target)
-    {
-        return true;
-    }
-
-    ///<summary>
-    /// Moves the enemy towards a target position.
-    ///</summary>
-    private void MoveToTarget(Vector2 target)
-    {
-        return;
-    }
-
-    ///<summary>
-    /// Returns the shortest path to the target position as an ordered list of points.
-    ///</summary>
-    private List<Vector2> GetPathToTarget(Vector2 target)
-    {
-        // Get a lookup table of nearby tiles to check (so we can get tiles by position)
-        Dictionary<Vector2, Tile> tilesInRange = GetTilesInRange();
-        // Store a list of tiles we've checked. Each tile stores the previous step taken to get there.
-        // This will let us loop back through all the previous steps to find the path taken to reach the target.
-        Dictionary<Vector2, Vector2> pathMap = new Dictionary<Vector2, Vector2>();
-        // A priority queue which prioritizes checking tiles that are closer to the target for efficiency
-        PriorityQueue<Tile, float> queue = new PriorityQueue<Tile, float>();
-
-        // Start from the current tile the enemy is on
-        Tile currentTile = GetCurrentTile();
-        // Use negativeInfinity to represent the end of our path
-        pathMap.Add(currentTile.transform.position, Vector2.negativeInfinity);
-        do
-        {
-            // Check if we've reached the target
-            Vector2 currentPos = currentTile.transform.position;
-            if (currentPos == target)
-            {
-                List<Vector2> result = new List<Vector2>();
-                // While we haven't reached the end of the path, get the next step
-                while (pathMap[currentPos] != Vector2.negativeInfinity)
-                {
-                    result.Add(currentPos);
-                    currentPos = pathMap[currentPos];
-                }
-                // We want the path TO the target not FROM the target
-                result.Reverse();
-                return result;
-            }
-
-            // Add all the adjacent tiles to the queue
-            QueueAdjacentTiles(queue, currentTile, target);
-
-            // Move to the next tile in the queue
-            currentTile = tileQueue.Remove();
-        }
-        while (tileQueue.Length() > 0);
-
-        return null;
-    }
-
-    ///<summary>
-    /// Returns a lookup table of all tiles in the Enemy's current room and all adjacent rooms.
-    ///</summary>
-    private Dictionary<Vector2, Tile> GetTilesInRange()
-    {
-        Dictionary<Vector2, Tile> tileMap = new Dictionary<Vector2, Tile>();
-        List<Room> adjacentRooms = new List<Room>();
-        adjacentRooms.Add(currentRoom);
-        adjacentRooms.AddRange(LevelController.instance.GetAdjacentInitializedRooms(currentRoom.x, currentRoom.y));
-        foreach (Room room in adjacentRooms)
-        {
-            foreach (KeyValuePair<Vector2, Tile> tileLookup in room.GetTileLookup())
-            {
-                tileMap.Add(tileLookup.Key, tileLookup.Value);
-            }
-        }
-        return tileMap;
-    }
-
-    ///<summary>
-    /// Returns an optimized path with the minimal number of points.
-    ///</summary>
-    private List<Vector2> OptimizePath(List<Vector2> path)
-    {
-        return null;
-    }
-
-    ///<summary>
-    /// Adds the adjacent tiles to the queue by priority of their distance to the target.
-    ///</summary>
-    private void QueueAdjacentTiles(PriorityQueue<Tile, float> queue, Tile currentTile, Vector2 target)
-    {
-        QueueAdjacentTile(currentTile, target, Vector2.left);
-        QueueAdjacentTile(currentTile, target, Vector2.right);
-        QueueAdjacentTile(currentTile, target, Vector2.up);
-        QueueAdjacentTile(currentTile, target, Vector2.down);
-    }
-
-    ///<summary>
-    /// Adds the adjacent tile to the queue by priority of its distance to the target.
-    ///</summary>
-    private void QueueAdjacentTile(Tile currentTile, Vector2 target, Vector2 direction)
-    {
-        float tileScale = LevelController.instance.tileScale;
-        direction.Normalize();
-        Vector2 adjPos = (Vector2)currentTile.transform.position + (direction * tileScale);
-        float adjDist = Vector2.Distance(adjPos, target);
-        Tile adjTile = tileMap.ContainsKey(adjPos) ? tileMap[adjPos] : LevelController.instance.DoorTileAt(adjPos);
-        if (IsTileValid(adjTile))
-        {
-            pathMap.Add(adjTile, currentTile);
-            tileQueue.Add(adjTile, adjDist);
-        }
-    }
-
-    ///<summary>
-    /// Returns true if the tile has not already been visited and it is not occupied by an obstacle.
-    ///</summary>
-    private bool IsTileValid(Tile tile)
-    {
-        return (
-            tile != null &&
-            !pathMap.ContainsKey(tile) &&
-            !tile.IsOccupied()
-        );
     }
 }
 

@@ -48,7 +48,7 @@ public class Player : MonoBehaviour
     [Tooltip("The GameObjecct tag of allowed bomb targets.")]
     public string bombTargetTag = "Deco";
 
-    private bool alive;
+    private bool alive = false;
     private int energyDrinkCount;
     private float energyDrinkDurationTimer;
     private float energyDrinkCooldownTimer;
@@ -66,10 +66,15 @@ public class Player : MonoBehaviour
         SceneManager.LoadSceneAsync("Lose");
     }
 
+    ///<summary>Sets the player to the alive state.</summary>
+    public void Spawn()
+    {
+        alive = true;
+    }
+
     void Start()
     {
         animator = GetComponent<Animator>();
-        alive = true;
     }
 
     void Update()
