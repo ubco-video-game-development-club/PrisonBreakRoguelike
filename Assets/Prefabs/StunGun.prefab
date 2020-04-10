@@ -82,5 +82,17 @@ PrefabInstance:
       propertyPath: idleColor.g
       value: 0.9999995
       objectReference: {fileID: 0}
+    - target: {fileID: 8853236869321035694, guid: da5c1626fe50d7748b0e0a8422ce260f,
+        type: 3}
+      propertyPath: standardSprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 5b5d23cbd5a64b343937aba83a86eb10,
+        type: 3}
+    - target: {fileID: 8853236869321035694, guid: da5c1626fe50d7748b0e0a8422ce260f,
+        type: 3}
+      propertyPath: highlightedSprite
+      value: 
+      objectReference: {fileID: 21300000, guid: e73575fe1ff9bc04ba28c8035a97ad4c,
+        type: 3}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: da5c1626fe50d7748b0e0a8422ce260f, type: 3}
