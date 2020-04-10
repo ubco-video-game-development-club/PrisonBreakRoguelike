@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 3660282020947254071}
   - component: {fileID: 8913672220400319685}
   - component: {fileID: 372276797722491080}
+  - component: {fileID: 5129285869571819939}
   - component: {fileID: 125053655744760699}
   m_Layer: 9
   m_Name: Stairs
@@ -49,6 +50,7 @@ SpriteRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -101,7 +103,7 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 0.64, y: 0.64}
+    oldSize: {x: 1, y: 1}
     newSize: {x: 1, y: 1}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -131,6 +133,18 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
+--- !u!114 &5129285869571819939
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1374721802017977336}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 45c27a8925d8b0d4abb7a947e690d6ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &125053655744760699
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -143,4 +157,3 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c0bb8adfc59bfb74ea3ecae75c830a97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gm: {fileID: 7944546399615023837, guid: ce28804b112e0af4c9ac118e0433900f, type: 3}

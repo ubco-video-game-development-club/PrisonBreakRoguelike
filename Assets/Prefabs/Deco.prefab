@@ -12,7 +12,8 @@ GameObject:
   - component: {fileID: 4064788499374151774}
   - component: {fileID: 8147382433688272812}
   - component: {fileID: 1119284446736628641}
-  m_Layer: 9
+  - component: {fileID: 8794541992642335959}
+  m_Layer: 10
   m_Name: Deco
   m_TagString: Deco
   m_Icon: {fileID: 0}
@@ -48,6 +49,7 @@ SpriteRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -130,3 +132,15 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
+--- !u!114 &8794541992642335959
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1851285876764668049}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 45c27a8925d8b0d4abb7a947e690d6ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

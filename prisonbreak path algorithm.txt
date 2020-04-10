@@ -1,0 +1,38 @@
+ATTACK LOOP
+Check if the player is out of follow range
+  [True]
+  Set state to patrol
+  Return
+Check if player has moved too far from prev path position
+  [True]
+  Adjust the path for the new end position
+
+Check if we can see the player
+  [True]
+  Set target to player position
+  [False]
+  Check if we don't have a path OR the player has moved too far from the previous position the path was calculated from
+    [True]
+    Calculate the path to the player
+  Set target to next point along path
+Move towards target
+
+GET PATH TO TARGET
+Calculate path
+Optimize path
+Return optimized path
+
+CALCULATE PATH
+Check if we reached the target
+  [True]
+  Return path to target
+Add adjacent tiles to the queue
+Move to the next tile in the queue
+
+OPTIMIZE PATH
+While currentPosition < path length
+  If next position is not visible from current position
+    currentPosition = next position - 1
+    add currentPosition to result
+  next position ++
+return result

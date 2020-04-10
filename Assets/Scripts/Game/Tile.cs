@@ -1,77 +1,19 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class Tile : MonoBehaviour
 {
     [HideInInspector]
-    public int x, y;
     public bool isDoor;
+
+    [HideInInspector]
     public bool isWall;
-    
-    /// <summary>
-    /// The GameObject that is occupying this Tile.
-    /// </summary>
-    //[HideInInspector]
-    public GameObject occupant;
 
-    private SpriteRenderer sr;
+    [HideInInspector]
+    public TileObject occupant;
 
-    void Start()
+    ///<summary>Returns true if this tile is a wall or if it has a blocking occupant.</summary>
+    public bool IsBlocked()
     {
-        sr = GetComponent<SpriteRenderer>();
-    }
-
-    void Update()
-    {
-        if (IsOccupied())
-        {
-            sr.color = Color.red;
-        }
-        else
-        {
-            sr.color = Color.white;
-        }
-    }
-
-    public Sprite ChooseSprite(Sprite[] sprites,float[] weights)
-    {
-        float rand = Random.Range(0f, Sum(weights));
-
-        float last = 0f;
-
-        float next = 0f;
-
-        for (int i = 0; i < sprites.Length; i++)
-        {
-            next += weights[i];
-
-            if(InRange(rand, last, next))
-                return sprites[i];
-            
-            else
-                last += weights[i]; 
-        }
-        Debug.Log("Error: Cannot choose a sprite");
-        return sprites[0];
-    }
-
-    public bool IsOccupied()
-    {
-        return occupant != null;
-    }
-
-    private bool InRange(float num, float bot, float top) // checks if num is in range [bot, top), helper method for ChooseSprite()
-    {
-        return (num >= bot && num < top);
-    }
-
-    private float Sum(float[] arr)
-    {
-        float sum = 0;
-        for(int i = 0; i < arr.Length; i++)
-            sum += arr[i];
-
-        return sum;
+        return isWall || (occupant && occupant.gameObject.layer == LayerMask.NameToLayer("Environment"));
     }
 }

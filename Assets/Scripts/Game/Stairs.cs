@@ -15,8 +15,6 @@ public class Stairs : MonoBehaviour  // Stairs shares functionality w/ other ite
     {
         if(col.tag == "Player")
         {
-            Debug.Log("collided w/ player");
-            
             levelController.LoadNextLevel();
         }
     }

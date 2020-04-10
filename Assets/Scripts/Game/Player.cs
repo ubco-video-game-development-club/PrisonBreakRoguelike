@@ -4,36 +4,51 @@ using UnityEngine.SceneManagement;
 
 public class Player : MonoBehaviour
 {
-    [Header("Vision")]
-    public LayerMask visionLayer;
-    public int visionRayCount = 100;
-    public float visionRayDistance = 100f;
-    [Header("Movement")]
+    [Header("Movement Settings")]
+    [Tooltip("The movement speed of the player in units per second.")]
     public float speed = 1f;
-    [Header("Interaction")]
+
+    [Header("Interaction Settings")]
+    [Tooltip("The max distance the player can be from an item to pick it up.")]
     public float pickupDistance = 1f;
-    [Header("Energy Drink")]
+
+    [Header("Energy Drink Settings")]
+    [Tooltip("The UI element for the energy drink cooldown.")]
     public ItemDisplay energyDrinkDisplay;
+    [Tooltip("The cooldown time between energy drink uses.")]
     public float energyDrinkCooldown = 1f;
+    [Tooltip("The duration of the energy drink movement speed buff.")]
     public float energyDrinkDuration = 1f;
+    [Tooltip("The movement speed of the player while the energy drink is active.")]
     public float energyDrinkSpeed = 1f;
-    [Header("Stun Gun")]
+
+    [Header("Stun Gun Settings")]
+    [Tooltip("The UI element for the stun gun cooldown.")]
     public ItemDisplay stunGunDisplay;
+    [Tooltip("The cooldown time between stun gun uses.")]
     public float stunGunCooldown = 1f;
+    [Tooltip("The duration of the stun effect.")]
     public float stunGunDuration = 1f;
+    [Tooltip("The physics layer the stun gun raycasts on.")]
     public LayerMask stunGunLayer;
+    [Tooltip("The range of the stun gun raycast.")]
     public float stunGunRange = 1f;
+    [Tooltip("The GameObjecct tag of allowed stun gun targets.")]
     public string stunGunTargetTag = "Enemy";
-    [Header("Bomb")]
+
+    [Header("Bomb Settings")]
+    [Tooltip("The UI element for the bomb cooldown.")]
     public ItemDisplay bombDisplay;
+    [Tooltip("The cooldown time between bomb uses.")]
     public float bombCooldown = 1f;
+    [Tooltip("The physics layer the bomb checks on.")]
     public LayerMask bombLayer;
+    [Tooltip("The radius of the stun gun physics check.")]
     public float bombRadius = 1f;
+    [Tooltip("The GameObjecct tag of allowed bomb targets.")]
     public string bombTargetTag = "Deco";
 
-    private bool alive;
-    private Room currentRoom;
-    private Item currentItemTarget;
+    private bool alive = false;
     private int energyDrinkCount;
     private float energyDrinkDurationTimer;
     private float energyDrinkCooldownTimer;
@@ -44,34 +59,22 @@ public class Player : MonoBehaviour
     private float bombCooldownTimer;
     private Animator animator;
 
+    ///<summary>Sets the player to the dead state and loads the lose scene.</summary>
     public void Die()
     {
         alive = false;
         SceneManager.LoadSceneAsync("Lose");
     }
 
-    public Tile GetCurrentTile()
+    ///<summary>Sets the player to the alive state.</summary>
+    public void Spawn()
     {
-        Vector2Int gridPos = currentRoom.ToGridPosition(transform.position);
-        Vector2 tilePos = LevelController.RoundToTilePosition(transform.position);
-        return currentRoom.TileAt(gridPos.x, gridPos.y) ?? LevelController.instance.DoorTileAt(tilePos);
-    }
-
-    public Room GetCurrentRoom()
-    {
-        return currentRoom;
-    }
-
-    public void Spawn(Room spawn, Vector2 spawnPos)
-    {
-        transform.position = spawnPos;
-        currentRoom = spawn;
+        alive = true;
     }
 
     void Start()
     {
         animator = GetComponent<Animator>();
-        alive = true;
     }
 
     void Update()
@@ -88,31 +91,11 @@ public class Player : MonoBehaviour
         UpdateBomb();
     }
 
-    void OnTriggerEnter2D(Collider2D collider)
-    {
-        Room room;
-        if (collider.TryGetComponent<Room>(out room))
-        {
-            currentRoom = room;
-            Debug.Log("New room is: " + currentRoom.name);
-        }
-    }
-
-    private void UpdateVision()
-    {
-        // Light2D light2D = GetComponent<Light2D>();
-        // light2D.shapePath = new Vector3[visionRayCount];
-        // const float PI = Mathf.PI;
-        // for (float angle = 0; angle < 2*PI; angle += 2*PI/visionRayCount)
-        // {
-        //     Vector2 dir = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
-        //     RaycastHit2D hit = Physics2D.Raycast(transform.position, dir, visionRayDistance, visionLayer);
-        //     light2D.shapePath
-        // }
-    }
-
+    ///<summary>Check for keyboard input, update player animations and update player position.</summary>
     private void UpdateMovement()
     {
+        // Add up input directions such that if the user inputs
+        // two opposite directions they will cancel out.
         float dx = 0f, dy = 0f;
         if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
         {
@@ -132,43 +115,33 @@ public class Player : MonoBehaviour
         }
     
         bool isMoving = (dy != 0 || dx != 0);
-         
+        
+        // Update player animations
         animator.SetBool("IsMoving", isMoving);
         animator.SetFloat("X_Vel", dx);
         animator.SetFloat("Y_Vel", dy);
     
+        // Update player position
         Vector3 vel = new Vector3(dx, dy, 0);
         vel.Normalize();
         vel *= energyDrinkActive ? energyDrinkSpeed : speed;
         transform.position += new Vector3(vel.x, vel.y, 0f) * Time.deltaTime;
     }
 
+    ///<summary>Checks for user input on nearby items.</summary>
     private void UpdateInteraction()
     {
         Item item = GetClosestItem();
         if (item == null)
         {
-            if (currentItemTarget != null)
-            {
-                currentItemTarget.SetAsTarget(false);
-                currentItemTarget = null;
-            }
-
             return;
         }
-        if (!item.Equals(currentItemTarget))
-        {
-            if (currentItemTarget != null)
-            {
-                currentItemTarget.SetAsTarget(false);
-            }
 
-            item.SetAsTarget(true);
-            currentItemTarget = item;
-        }
-
-        if (Input.GetKeyDown(KeyCode.E))
+        // If the item is within pickup distance and the user presses E
+        float dist = Vector2.Distance(item.transform.position, transform.position);
+        if (dist < pickupDistance && Input.GetKeyDown(KeyCode.E))
         {
+            // Pick up the item
             switch (item.itemType)
             {
                 case ItemType.ENERGY_DRINK:
@@ -187,13 +160,15 @@ public class Player : MonoBehaviour
                     break;
                 }
             }
-            item.ClearOccupiedTile();
+
+            // Remove the picked-up Item from the grid
+            Vector2Int gridPos = LevelController.WorldToTilePosition(item.transform.position);
+            LevelController.instance.tiles[gridPos.x, gridPos.y].occupant = null;
             Destroy(item.gameObject);
-            currentItemTarget = null;
         }
     }
     
-
+    ///<summary>Updates the Energy Drink item usage every frame, including cooldown timer, checking input and updating the UI.</summary>
     private void UpdateEnergyDrink()
     {
         energyDrinkCooldownTimer -= Time.deltaTime;
@@ -218,6 +193,7 @@ public class Player : MonoBehaviour
         energyDrinkDisplay.SetProgress(progress);
     }
 
+    ///<summary>Updates the Stun Gun item usage every frame, including cooldown timer, checking input and updating the UI.</summary>
     private void UpdateStunGun()
     {
         stunGunCooldownTimer -= Time.deltaTime;
@@ -254,6 +230,7 @@ public class Player : MonoBehaviour
         stunGunDisplay.SetProgress(progress);
     }
 
+    ///<summary>Updates the Bomb item usage every frame, including cooldown timer, checking input and updating the UI.</summary>
     private void UpdateBomb()
     {
         bombCooldownTimer -= Time.deltaTime;
@@ -279,33 +256,35 @@ public class Player : MonoBehaviour
         bombDisplay.SetProgress(progress);
     }
 
+    ///<summary>Returns the closest item to the player or null if no items were found.</summary>
     private Item GetClosestItem()
     {
-        if (currentRoom == null)
-        {
-            return null;
-        }
-
-        List<Item> nearbyItems = currentRoom.GetItems();
-        if (nearbyItems == null || nearbyItems.Count == 0)
-        {
-            return null;
-        }
+        // Get all tiles within (pickup distance + 1) of the player's position
+        Vector2Int gridPos = LevelController.WorldToTilePosition(transform.position);
+        int maxDist = Mathf.CeilToInt(pickupDistance) + 1;
+        List<Tile> tiles = LevelController.instance.GetTilesInRange(gridPos, maxDist);
         
-        Item item = null;
+        // Get the closest item in the range of tiles
+        Item closestItem = null;
         float shortestDist = float.MaxValue;
-
-        foreach (Item nearbyItem in nearbyItems)
+        foreach (Tile tile in tiles)
         {
-            float dist = Vector2.Distance(transform.position, nearbyItem.transform.position);
-            if (dist < pickupDistance && dist < shortestDist)
+            TileObject obj = tile.occupant;
+
+            // Check if there is an item on this tile
+            Item item;
+            if (obj != null && obj.TryGetComponent<Item>(out item))
             {
-                item = nearbyItem;
-                shortestDist = dist;
+                float dist = Vector2.Distance(gridPos, item.transform.position);
+                if (dist < shortestDist)
+                {
+                    closestItem = item;
+                    shortestDist = dist;
+                }
             }
         }
 
-        return item;
+        return closestItem;
     }
 }
 

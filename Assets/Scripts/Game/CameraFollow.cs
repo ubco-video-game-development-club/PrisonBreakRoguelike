@@ -17,6 +17,7 @@ public class CameraFollow : MonoBehaviour
 
     void Update()
     {
+        // Move the camera towards to player using the SmoothDamp translation function
         Vector3 targetPosition = new Vector3(target.position.x, target.position.y, transform.position.z);
         transform.position = Vector3.SmoothDamp(transform.position, targetPosition, ref velocity, followTime);
     }
