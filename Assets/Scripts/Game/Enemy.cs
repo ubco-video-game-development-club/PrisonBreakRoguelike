@@ -116,7 +116,7 @@ public class Enemy : MonoBehaviour
         Vector3 target = path.Current();
 
         // Move the enemy towards the target based on their current speed
-        transform.position = Vector2.MoveTowards(transform.position, target, speed);
+        transform.position = Vector2.MoveTowards(transform.position, target, speed * Time.deltaTime);
 
         // Update the current direction
         direction = (target - transform.position).normalized;
@@ -147,7 +147,7 @@ public class Enemy : MonoBehaviour
         // Check if the enemy saw the player based on the frontal vision angle and distance
         Vector2 dirToPlayer = player.transform.position - transform.position;
         float angleToPlayer = Vector2.Angle(dirToPlayer, direction);
-        bool sawPlayer = angleToPlayer < visionArcAngle && distToPlayer < visionDistance;
+        bool sawPlayer = angleToPlayer < visionArcAngle / 2 && distToPlayer < visionDistance;
 
         // If the player was detected, set the state to attack
         if (heardPlayer || sawPlayer)
@@ -412,7 +412,7 @@ public class Enemy : MonoBehaviour
                 RaycastHit2D hit = Physics2D.Raycast(currentPoint, dir, dist);
 
                 // If the current point is not visible from last key point
-                if (hit.collider == null)
+                if (hit.collider != null)
                 {
                     // Set the previous index as the new last key point
                     lastKeyIndex = currentIndex - 1;

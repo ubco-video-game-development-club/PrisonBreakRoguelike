@@ -424,13 +424,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   numLevels: 2
-  gridWidth: 4
-  gridHeight: 4
-  roomSize: 10
+  gridWidth: 3
+  gridHeight: 3
+  roomSize: 6
   doorSize: 3
   spawnX: 0
   spawnY: 0
-  exitDistance: 3
+  exitDistance: 2
   branchMode: 0
   skipProbability: 0.2
   branchProbability: 0.5
@@ -767,7 +767,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1c1dd8b967e487f43b1b3326cfa16083, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  deathScreen: {fileID: 0}
 --- !u!224 &1790400502 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 3153229945339268748, guid: 8d54935de4d4849429ab22a6b0e8d0fd,

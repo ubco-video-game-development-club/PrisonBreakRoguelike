@@ -278,6 +278,10 @@ public class LevelController : MonoBehaviour
             {
                 int x = currentTilePos.x;
                 int y = currentTilePos.y;
+
+                // Destroy the current wall tile at this position
+                Destroy(tiles[x, y].gameObject);
+
                 // Instantiate new tile object
                 Vector2 position = new Vector2(x, y);
                 Tile tile = Instantiate(tilePrefab, position, Quaternion.identity, tileParent.transform) as Tile;
@@ -378,8 +382,8 @@ public class LevelController : MonoBehaviour
     private void SpawnStairs(Vector2Int exitRoom)
     {
         // Get the tile position of the bottom-right corner of the exit room
-        int exitRoomTileX = exitRoom.x * (roomSize + 1);
-        int exitRoomTileY = exitRoom.y * (roomSize + 1);
+        int exitRoomTileX = exitRoom.x * (roomSize + 1) + 1;
+        int exitRoomTileY = exitRoom.y * (roomSize + 1) + 1;
 
         // Get a random tile position in the exit room to place the stairs
         int randX = Random.Range(0, roomSize) + exitRoomTileX;
@@ -400,8 +404,8 @@ public class LevelController : MonoBehaviour
     private void SpawnPlayer(Vector2Int spawnRoom)
     {
         // Get the tile position of the bottom-right corner of the spawn room
-        int spawnRoomTileX = spawnRoom.x * (roomSize + 1);
-        int spawnRoomTileY = spawnRoom.y * (roomSize + 1);
+        int spawnRoomTileX = spawnRoom.x * (roomSize + 1) + 1;
+        int spawnRoomTileY = spawnRoom.y * (roomSize + 1) + 1;
 
         // Get the centermost tile position in the spawn room
         int spawnTileX = spawnRoomTileX + (roomSize / 2);
@@ -424,7 +428,7 @@ public class LevelController : MonoBehaviour
             for (int j = 0; j < gridHeight; j++)
             {
                 // Add all grid squares that are sufficiently far from the player spawn point
-                if (GridDistance(i, j, spawnX, spawnY) > exitDistance)
+                if (GridDistance(i, j, spawnX, spawnY) >= exitDistance)
                 {
                     validExits.Add(new Vector2Int(i, j));
                 }
@@ -500,6 +504,12 @@ public class LevelController : MonoBehaviour
 
         // Keep track of the grid squares we've visited
         bool[,] visited = new bool[gridWidth, gridHeight];
+
+        // Consider all the rooms in our existing path as visited
+        foreach (Vector2Int room in path)
+        {
+            visited[room.x, room.y] = true;
+        }
 
         // This algorithm works simply by stepping through each room in the path,
         // and randomly choosing to generate doors in any given direction. You can

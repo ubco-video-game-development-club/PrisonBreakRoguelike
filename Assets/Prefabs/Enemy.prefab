@@ -144,8 +144,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7b24d26e8d6c742409655013622337fc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  visionDistance: 8
-  visionArcAngle: 0.4
-  hearingRadius: 5
   attackSpeed: 3.5
   patrolSpeed: 2.5
+  maxPatrolDistance: 2
+  minIdleDuration: 2
+  maxIdleDuration: 4
+  pathAdjustDistance: 1
+  visionDistance: 8
+  visionArcAngle: 30
+  hearingRadius: 4
+  followDistance: 10
