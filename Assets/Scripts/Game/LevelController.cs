@@ -334,6 +334,7 @@ public class LevelController : MonoBehaviour
                         if (rand < total)
                         {
                             tiles[x, y].GetComponent<SpriteRenderer>().sprite = tileSprites[i];
+                            break;
                         }
                     }
                 }

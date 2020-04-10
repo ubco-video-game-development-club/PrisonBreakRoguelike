@@ -495,7 +495,7 @@ MonoBehaviour:
   itemChance: 0.05
   enemyPrefabs:
   - {fileID: -4778358635996450291, guid: 97d0ef8ad611c2e4194aa4a28d57fb42, type: 3}
-  enemyChance: 0.01
+  enemyChance: 0.005
 --- !u!4 &1588575893
 Transform:
   m_ObjectHideFlags: 0
@@ -1109,11 +1109,6 @@ PrefabInstance:
       propertyPath: bombDisplay
       value: 
       objectReference: {fileID: 163691953}
-    - target: {fileID: 9131571438211682547, guid: 7215d388d4b77234fab5c962108a1dab,
-        type: 3}
-      propertyPath: bombLayer.m_Bits
-      value: 1024
-      objectReference: {fileID: 0}
     - target: {fileID: 9131571438211682556, guid: 7215d388d4b77234fab5c962108a1dab,
         type: 3}
       propertyPath: m_Name

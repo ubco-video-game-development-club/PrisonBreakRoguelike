@@ -25,7 +25,7 @@ public class Item : MonoBehaviour
     {
         // Update the sprite based on the distance to the player
         Vector2 dist = transform.position - player.transform.position;
-        bool inRange = dist.sqrMagnitude < player.pickupDistance;
+        bool inRange = dist.magnitude < player.pickupDistance;
         spriteRenderer.sprite = inRange ? highlightedSprite : standardSprite;
     }
 }
