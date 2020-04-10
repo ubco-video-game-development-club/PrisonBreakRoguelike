@@ -102,13 +102,6 @@ public class LevelController : MonoBehaviour
         GenerateLevel();
     }
 
-    ///<summary>Loads the first game level.</summary>
-    public void LoadFirstLevel()
-    {
-        currentLevel = 0;
-        SceneManager.LoadSceneAsync("Level");
-    }
-
     ///<summary>Loads the next game level and checks if the player has reached the end.</summary>
     public void LoadNextLevel()
     {
@@ -116,6 +109,7 @@ public class LevelController : MonoBehaviour
         // If we've completed enough levels, we reach the win screen
         if (currentLevel >= numLevels)
         {
+            currentLevel = 0;
             SceneManager.LoadSceneAsync("Win");
         }
         // Otherwise, load the next level
@@ -126,18 +120,27 @@ public class LevelController : MonoBehaviour
     }
 
     ///<summary>Returns a square of tiles centered at the given position out to a given range.</summary>
-    public List<Tile> GetTileRange(Vector2Int gridPosition, int tileRange, bool excludeWalls = true)
+    public List<Tile> GetTilesInRange(Vector2Int gridPosition, int tileRange, bool excludeCenter = false)
     {
         List<Tile> result = new List<Tile>();
         for (int y = gridPosition.y - tileRange; y <= gridPosition.y + tileRange; y++)
         {
             for (int x = gridPosition.x - tileRange; x <= gridPosition.x + tileRange; x++)
             {
+                // If this is a valid tile position
                 if (IsTileInBounds(x, y))
                 {
+                    // If we have set to exclude the center tile and this is the center, skip
+                    if (excludeCenter && gridPosition.x == x && gridPosition.y == y)
+                    {
+                        continue;
+                    }
+
+                    // Get the tile at this position
                     Tile tile = tiles[x, y];
-                    // Check if we only want to get non-wall tiles
-                    if (!(excludeWalls && tile.isWall))
+
+                    // If this tile is not blocked, add it to the list
+                    if (!tile.IsBlocked())
                     {
                         result.Add(tile);
                     }

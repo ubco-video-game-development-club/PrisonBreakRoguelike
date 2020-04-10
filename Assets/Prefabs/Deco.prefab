@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 8147382433688272812}
   - component: {fileID: 1119284446736628641}
   - component: {fileID: 8794541992642335959}
-  m_Layer: 9
+  m_Layer: 10
   m_Name: Deco
   m_TagString: Deco
   m_Icon: {fileID: 0}

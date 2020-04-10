@@ -424,13 +424,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   numLevels: 2
-  gridWidth: 3
-  gridHeight: 3
-  roomSize: 6
+  gridWidth: 4
+  gridHeight: 4
+  roomSize: 8
   doorSize: 3
   spawnX: 0
   spawnY: 0
-  exitDistance: 2
+  exitDistance: 3
   branchMode: 0
   skipProbability: 0.2
   branchProbability: 0.5
@@ -487,7 +487,7 @@ MonoBehaviour:
     type: 3}
   decoPrefabs:
   - {fileID: 8794541992642335959, guid: af29998537a15024aaeeac7710a3369a, type: 3}
-  decoChance: 0.2
+  decoChance: 0.15
   itemPrefabs:
   - {fileID: 1992829510337875050, guid: 728ded94480b8924fb6386a85a7ceced, type: 3}
   - {fileID: 2043421726309517775, guid: 0eb6b8ccec5fb4b49b473064d2c14e08, type: 3}
@@ -665,7 +665,6 @@ GameObject:
   - component: {fileID: 1665943091}
   - component: {fileID: 1665943090}
   - component: {fileID: 1665943089}
-  - component: {fileID: 1665943093}
   m_Layer: 5
   m_Name: HUD
   m_TagString: Untagged
@@ -755,18 +754,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
---- !u!114 &1665943093
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1665943088}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1c1dd8b967e487f43b1b3326cfa16083, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!224 &1790400502 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 3153229945339268748, guid: 8d54935de4d4849429ab22a6b0e8d0fd,
@@ -1122,6 +1109,11 @@ PrefabInstance:
       propertyPath: bombDisplay
       value: 
       objectReference: {fileID: 163691953}
+    - target: {fileID: 9131571438211682547, guid: 7215d388d4b77234fab5c962108a1dab,
+        type: 3}
+      propertyPath: bombLayer.m_Bits
+      value: 1024
+      objectReference: {fileID: 0}
     - target: {fileID: 9131571438211682556, guid: 7215d388d4b77234fab5c962108a1dab,
         type: 3}
       propertyPath: m_Name

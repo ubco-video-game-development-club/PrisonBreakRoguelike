@@ -60,8 +60,6 @@ public class Enemy : MonoBehaviour
 
     void Update()
     {
-        LookForPlayer();
-
         // Update the enemy based on the current state
         switch (state)
         {
@@ -78,6 +76,15 @@ public class Enemy : MonoBehaviour
         if (collision.collider.TryGetComponent<Player>(out p))
         {
             p.Die();
+        }
+    }
+
+    void OnDrawGizmos()
+    {
+        if (state == EnemyState.Attack)
+        {
+            // path.DrawPathGizmos();
+            // Gizmos.DrawLine(transform.position, path.Current());
         }
     }
 
@@ -114,6 +121,7 @@ public class Enemy : MonoBehaviour
 
         // Get the current path target
         Vector3 target = path.Current();
+        // Debug.Log("current target: " + target);
 
         // Move the enemy towards the target based on their current speed
         transform.position = Vector2.MoveTowards(transform.position, target, speed * Time.deltaTime);
@@ -123,8 +131,10 @@ public class Enemy : MonoBehaviour
 
         // If the enemy has reached the target, move to the next target along the path
         float distToTarget = Vector2.Distance(transform.position, target);
-        if (distToTarget < 0.1f)
+        // Debug.Log("dist: " + distToTarget);
+        if (distToTarget < Mathf.Epsilon)
         {
+            // Debug.Log("changed targets");
             endReached = path.TargetNext();
         }
 
@@ -134,12 +144,6 @@ public class Enemy : MonoBehaviour
     ///<summary>Checks to see if the player has been detected by the enemy's vision or hearing.</summary>
     private void LookForPlayer()
     {
-        // Don't make any detection checks if the enemy is stunned
-        if (state == EnemyState.Stunned)
-        {
-            return;
-        }
-
         // Check if the enemy heard the player based on the hearing radius
         float distToPlayer = Vector2.Distance(transform.position, player.transform.position);
         bool heardPlayer = distToPlayer < hearingRadius;
@@ -152,7 +156,7 @@ public class Enemy : MonoBehaviour
         // If the player was detected, set the state to attack
         if (heardPlayer || sawPlayer)
         {
-            state = EnemyState.Attack;
+            SetState(EnemyState.Attack);
         }
     }
 
@@ -161,7 +165,7 @@ public class Enemy : MonoBehaviour
     {
         // Get all tiles within maxPatrolDistance of the enemy's position
         Vector2Int gridPos = LevelController.WorldToTilePosition(transform.position);
-        List<Tile> tiles = LevelController.instance.GetTileRange(gridPos, maxPatrolDistance);
+        List<Tile> tiles = LevelController.instance.GetTilesInRange(gridPos, maxPatrolDistance, true);
 
         // Try generating paths to nearby tiles until we find one with a valid path
         bool foundPath = false;
@@ -208,7 +212,7 @@ public class Enemy : MonoBehaviour
         float distToPrev = Vector2.Distance(path.End(), player.transform.position);
         if (distToPrev > pathAdjustDistance)
         {
-            path.AdjustEndpoint(player.transform.position);
+            path.GeneratePath(transform.position, player.transform.position);
         }
 
         // Move along the path to the player
@@ -224,6 +228,8 @@ public class Enemy : MonoBehaviour
     ///<summary>Update function for the Patrol state.</summary>
     private void Patrol()
     {
+        LookForPlayer();
+        
         // Move along the path to our current patrol target
         bool reachedEnd = MoveAlongPath();
         if (reachedEnd)
@@ -236,6 +242,8 @@ public class Enemy : MonoBehaviour
     ///<summary>Update function for the Idle state.</summary>
     private void Idle()
     {
+        LookForPlayer();
+        
         // Update the idle timer
         idleTimer -= Time.deltaTime;
         if (idleTimer <= 0)
@@ -259,8 +267,8 @@ public class Enemy : MonoBehaviour
 
     private class EnemyPath
     {
-        public List<Vector2Int> tilePath;
-        public List<Vector2> optimizedPath;
+        private List<Vector2Int> tilePath;
+        private List<Vector2> optimizedPath;
         private int targetIndex = 0;
 
         public EnemyPath()
@@ -275,8 +283,14 @@ public class Enemy : MonoBehaviour
             bool pathFound = CalculatePath(start, end);
             if (pathFound)
             {
+                Debug.Log("Path of length " + tilePath.Count + " successfully generated between " + start + " and " + end);
                 OptimizePath();
+                Debug.Log("Path of length " + optimizedPath.Count + " successfully optimized between " + start + " and " + end);
                 targetIndex = 0;
+            }
+            else
+            {
+                Debug.Log("Path NOT generated between " + start + " and " + end);
             }
             return pathFound;
         }
@@ -284,10 +298,6 @@ public class Enemy : MonoBehaviour
         ///<summary>Returns the current target position along the path. Change to the next target by calling TargetNext().</summary>
         public Vector2 Current()
         {
-            if (targetIndex >= optimizedPath.Count)
-            {
-                Debug.Log("the hell?");
-            }
             return optimizedPath[targetIndex];
         }
 
@@ -304,26 +314,19 @@ public class Enemy : MonoBehaviour
             return targetIndex >= optimizedPath.Count;
         }
 
-        ///<summary>Recalculates the current path efficiently based on a slightly adjusted endpoint.</summary>
-        public void AdjustEndpoint(Vector2 adjustedEnd)
+        public void DrawPathGizmos()
         {
-            // Draw a new path from the current endpoint to the new endpoint
-            Vector2Int currentEnd = tilePath[tilePath.Count - 1];
-            EnemyPath addon = new EnemyPath();
-            addon.GeneratePath(currentEnd, adjustedEnd);
-
-            // Add the new path to the end of our current path
-            tilePath.AddRange(addon.tilePath);
-            
-            // Re-optimize the new extended path
-            OptimizePath();
+            for (int i = 0; i < optimizedPath.Count - 1; i++)
+            {
+                Gizmos.DrawLine(optimizedPath[i], optimizedPath[i+1]);
+            }
         }
 
         ///<summary>Calculates the shortest path from start to end. Returns a success boolean for whether a path was found.</summary>
         private bool CalculatePath(Vector2 start, Vector2 end)
         {
             tilePath = new List<Vector2Int>();
-
+            
             // Success boolean
             bool success = false;
 
@@ -374,9 +377,9 @@ public class Enemy : MonoBehaviour
                     {
                         // Get the tile at this position
                         Tile tile = LevelController.instance.tiles[adj.x, adj.y];
-
-                        // If this tile is not a wall and has not already been visited
-                        if (!tile.isWall && !pathMap.ContainsKey(adj))
+                        
+                        // If this tile is not blocked and has not already been visited
+                        if (!tile.IsBlocked() && !pathMap.ContainsKey(adj))
                         {
                             // Add this tile position to the queue
                             queue.Add(adj, Vector2.Distance(adj, endTilePos));
@@ -384,6 +387,12 @@ public class Enemy : MonoBehaviour
                             pathMap.Add(adj, currentTilePos);
                         }
                     }
+                }
+
+                // If the queue is empty, we have failed to find a path
+                if (queue.Length() == 0)
+                {
+                    break;
                 }
 
                 // Move to the next tile in the queue
@@ -396,24 +405,50 @@ public class Enemy : MonoBehaviour
         ///<summary>Uses raycasting to determine the most direct route through points in the path and removes unnecessary points.</summary>
         private void OptimizePath()
         {
+            Debug.Log("1");
+
             optimizedPath = new List<Vector2>();
 
-            int currentIndex = 0;
+            int currentIndex = 1;
             int lastKeyIndex = 0;
             // While current index is less than path length - 1
             while (currentIndex < tilePath.Count - 1)
             {
+                Debug.Log("2");
+                
                 Vector2 currentPoint = tilePath[currentIndex];
                 Vector2 lastKeyPoint = tilePath[lastKeyIndex];
 
-                // Raycast from current point to last key point
-                Vector2 dir = (lastKeyPoint - currentPoint).normalized;
-                float dist = Vector2.Distance(currentPoint, lastKeyPoint);
-                RaycastHit2D hit = Physics2D.Raycast(currentPoint, dir, dist);
-
-                // If the current point is not visible from last key point
-                if (hit.collider != null)
+                bool isLineClear = true;
+                // Linecast from each corner of the current point to relevant corner in the last key point
+                for (float angle = Mathf.PI/4; angle < 2*Mathf.PI; angle += Mathf.PI/2)
                 {
+                    // Get the offset to the corner determined by the current angle
+                    float offsetX = Mathf.Sign(Mathf.Cos(angle)) * 0.5f;
+                    float offsetY = Mathf.Sign(Mathf.Sin(angle)) * 0.5f;
+                    Vector2 cornerOffset = new Vector2(offsetX, offsetY);
+
+                    // Use the corner offset to get the corner positions for this linecast
+                    Vector2 currentCorner = currentPoint + cornerOffset;
+                    Vector2 targetCorner = lastKeyPoint + cornerOffset;
+
+                    // Linecast between the two corners
+                    RaycastHit2D hit = Physics2D.Linecast(currentCorner, targetCorner, LayerMask.GetMask("Environment"));
+
+                    // If there is something between the two corners
+                    if (hit.collider != null)
+                    {
+                        // This path is not clear
+                        isLineClear = false;
+                        break;
+                    }
+                }
+
+                // If the path between the two points is not clear
+                if (!isLineClear)
+                {
+                    Debug.Log("3");
+
                     // Set the previous index as the new last key point
                     lastKeyIndex = currentIndex - 1;
 
@@ -423,10 +458,16 @@ public class Enemy : MonoBehaviour
 
                 // Move to the next point
                 currentIndex++;
+
+                Debug.Log("4");
             }
+            
+            Debug.Log("5");
             
             // Add the final point of the path
             optimizedPath.Add(tilePath[tilePath.Count - 1]);
+            
+            Debug.Log("6");
         }
     }
 }

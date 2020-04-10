@@ -262,7 +262,7 @@ public class Player : MonoBehaviour
         // Get all tiles within (pickup distance + 1) of the player's position
         Vector2Int gridPos = LevelController.WorldToTilePosition(transform.position);
         int maxDist = Mathf.CeilToInt(pickupDistance) + 1;
-        List<Tile> tiles = LevelController.instance.GetTileRange(gridPos, maxDist);
+        List<Tile> tiles = LevelController.instance.GetTilesInRange(gridPos, maxDist);
         
         // Get the closest item in the range of tiles
         Item closestItem = null;
