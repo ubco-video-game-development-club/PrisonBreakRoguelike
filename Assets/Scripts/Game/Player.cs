@@ -55,6 +55,7 @@ public class Player : MonoBehaviour
     private bool energyDrinkActive;
     private int stunGunCount;
     private float stunGunCooldownTimer;
+    private bool stunGunActive;
     private int bombCount;
     private float bombCooldownTimer;
     private Animator animator;
@@ -190,7 +191,7 @@ public class Player : MonoBehaviour
         }
 
         float progress = energyDrinkCooldownTimer / energyDrinkCooldown;
-        energyDrinkDisplay.SetProgress(progress);
+        energyDrinkDisplay.UpdateDisplay(progress, energyDrinkCount);
     }
 
     ///<summary>Updates the Stun Gun item usage every frame, including cooldown timer, checking input and updating the UI.</summary>
@@ -202,32 +203,43 @@ public class Player : MonoBehaviour
             && stunGunCooldownTimer <= 0
             && stunGunCount > 0)
         {
-            stunGunCooldownTimer = stunGunCooldown;
-            stunGunCount--;
-            
-            Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            Vector2 mouseDirection = mousePosition - (Vector2)transform.position;
-            RaycastHit2D[] hits = Physics2D.RaycastAll(transform.position, mouseDirection, stunGunRange, stunGunLayer);
-            foreach (RaycastHit2D hit in hits)
+            stunGunActive = !stunGunActive;
+        }
+
+        if (stunGunActive)
+        {
+            if (Input.GetButtonDown("Fire1"))
             {
-                GameObject target = hit.collider.gameObject;
-                if (target.CompareTag("Wall"))
+                stunGunActive = false;
+                stunGunCooldownTimer = stunGunCooldown;
+                stunGunCount--;
+                
+                Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                Vector2 mouseDirection = mousePosition - (Vector2)transform.position;
+                RaycastHit2D[] hits = Physics2D.RaycastAll(transform.position, mouseDirection, stunGunRange, stunGunLayer);
+                foreach (RaycastHit2D hit in hits)
                 {
-                    break;
-                }
-                if (target.CompareTag(stunGunTargetTag))
-                {
-                    Enemy enemy;
-                    if (target.TryGetComponent<Enemy>(out enemy))
+                    GameObject target = hit.collider.gameObject;
+                    if (target.CompareTag("Wall"))
                     {
-                        enemy.Stun(stunGunDuration);
+                        break;
+                    }
+                    if (target.CompareTag(stunGunTargetTag))
+                    {
+                        Enemy enemy;
+                        if (target.TryGetComponent<Enemy>(out enemy))
+                        {
+                            enemy.Stun(stunGunDuration);
+                        }
                     }
                 }
             }
+
+            // TODO: add code to display an indicator beam while active
         }
 
         float progress = stunGunCooldownTimer / stunGunCooldown;
-        stunGunDisplay.SetProgress(progress);
+        stunGunDisplay.UpdateDisplay(progress, stunGunCount);
     }
 
     ///<summary>Updates the Bomb item usage every frame, including cooldown timer, checking input and updating the UI.</summary>
@@ -253,7 +265,7 @@ public class Player : MonoBehaviour
         }
 
         float progress = bombCooldownTimer / bombCooldown;
-        bombDisplay.SetProgress(progress);
+        bombDisplay.UpdateDisplay(progress, bombCount);
     }
 
     ///<summary>Returns the closest item to the player or null if no items were found.</summary>
