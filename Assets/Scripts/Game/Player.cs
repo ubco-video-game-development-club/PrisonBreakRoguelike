@@ -25,6 +25,8 @@ public class Player : MonoBehaviour
     [Header("Stun Gun Settings")]
     [Tooltip("The UI element for the stun gun cooldown.")]
     public ItemDisplay stunGunDisplay;
+    [Tooltip("The line renderer prefab used to indicate the stun gun path while active.")]
+    public LineRenderer stunGunIndicatorPrefab;
     [Tooltip("The cooldown time between stun gun uses.")]
     public float stunGunCooldown = 1f;
     [Tooltip("The duration of the stun effect.")]
@@ -33,7 +35,7 @@ public class Player : MonoBehaviour
     public LayerMask stunGunLayer;
     [Tooltip("The range of the stun gun raycast.")]
     public float stunGunRange = 1f;
-    [Tooltip("The GameObjecct tag of allowed stun gun targets.")]
+    [Tooltip("The GameObject tag of allowed stun gun targets.")]
     public string stunGunTargetTag = "Enemy";
 
     [Header("Bomb Settings")]
@@ -58,6 +60,7 @@ public class Player : MonoBehaviour
     private bool stunGunActive;
     private int bombCount;
     private float bombCooldownTimer;
+    private LineRenderer stunGunIndicator;
     private Animator animator;
 
     ///<summary>Sets the player to the dead state and loads the lose scene.</summary>
@@ -76,6 +79,8 @@ public class Player : MonoBehaviour
     void Start()
     {
         animator = GetComponent<Animator>();
+        stunGunIndicator = Instantiate(stunGunIndicatorPrefab);
+        stunGunIndicator.enabled = false;
     }
 
     void Update()
@@ -204,19 +209,43 @@ public class Player : MonoBehaviour
             && stunGunCount > 0)
         {
             stunGunActive = !stunGunActive;
+            stunGunIndicator.enabled = stunGunActive;
         }
 
         if (stunGunActive)
         {
+            Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            Vector2 mouseDirection = mousePosition - (Vector2)transform.position;
+            RaycastHit2D[] hits = Physics2D.RaycastAll(transform.position, mouseDirection, stunGunRange, stunGunLayer);
+
+            // display an indicator beam while active
+            bool hitWall = false;
+            foreach (RaycastHit2D hit in hits)
+            {
+                GameObject target = hit.collider.gameObject;
+                if (target.CompareTag("Wall"))
+                {
+                    hitWall = true;
+                    stunGunIndicator.SetPosition(0, transform.position);
+                    stunGunIndicator.SetPosition(1, target.transform.position);
+                    break;
+                }
+            }
+
+            if (!hitWall)
+            {
+                Vector2 targetPos = (Vector2)transform.position + mouseDirection * stunGunRange;
+                stunGunIndicator.SetPosition(0, transform.position);
+                stunGunIndicator.SetPosition(1, targetPos);
+            }
+
             if (Input.GetButtonDown("Fire1"))
             {
                 stunGunActive = false;
+                stunGunIndicator.enabled = false;
                 stunGunCooldownTimer = stunGunCooldown;
                 stunGunCount--;
                 
-                Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-                Vector2 mouseDirection = mousePosition - (Vector2)transform.position;
-                RaycastHit2D[] hits = Physics2D.RaycastAll(transform.position, mouseDirection, stunGunRange, stunGunLayer);
                 foreach (RaycastHit2D hit in hits)
                 {
                     GameObject target = hit.collider.gameObject;
@@ -234,8 +263,6 @@ public class Player : MonoBehaviour
                     }
                 }
             }
-
-            // TODO: add code to display an indicator beam while active
         }
 
         float progress = stunGunCooldownTimer / stunGunCooldown;
