@@ -1109,6 +1109,12 @@ PrefabInstance:
       propertyPath: bombDisplay
       value: 
       objectReference: {fileID: 163691953}
+    - target: {fileID: 9131571438211682547, guid: 7215d388d4b77234fab5c962108a1dab,
+        type: 3}
+      propertyPath: stunGunIndicatorPrefab
+      value: 
+      objectReference: {fileID: 7923013512635873411, guid: 61ad2beeff36f6f479f84ea327387e94,
+        type: 3}
     - target: {fileID: 9131571438211682556, guid: 7215d388d4b77234fab5c962108a1dab,
         type: 3}
       propertyPath: m_Name
