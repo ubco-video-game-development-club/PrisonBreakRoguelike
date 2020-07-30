@@ -1,5 +1,7 @@
 # Prison Break Game!!!
-A top down roguelike, where you play as a brave convict trying to escape from a seemingly neverending prison complex
+A top down roguelike, where you play as a brave convict trying to escape from a seemingly neverending prison complex.
+
+![Title screen gif](https://github.com/ubco-video-game-development-club/PrisonBreakRoguelike/blob/master/Game%20Snapshots/Prison%20Break%20Title%20Screen%20Demo.gif)
 
 ## How to use GitHub with Unity
 This is mostly copy-pasted from the Open Project, but it gives a good rundown of how to easily use GitHub with Unity:
